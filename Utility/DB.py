@@ -107,5 +107,5 @@ class DB:
 
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult','root','0910@mysql')
-    db.create_table_copy("t", "t1", ["a", "b"])
+    db.create_table_copy("t", "t1")
 
