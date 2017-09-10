@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 from Utility.DB import DB
 
@@ -29,10 +30,29 @@ if __name__ == '__main__':
     sql_set = "set sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
     db.cur.execute(sql_set)
     for tradeNumbound in tradeNumboundList:
-        sql1 = "select a.* from mubound20170909 as a where a.tradeNum >" + str(tradeNumbound) + " and " \
-                                                                                                "MuBound = (select max(MuBound) from mubound20170909 " \
-                                                                                                "where a.ComputeLantency = ComputeLantency and a.IntervalNum=IntervalNum and a.lnLastPriceThreshold=lnLastPriceThreshold)"
-        sql = "select * from (select * from mubound20170909 " \
-              "where tradeNum>" + str(tradeNumbound) + " order by MuBound desc)" \
-                                                       " as a group by a.ComputeLantency, a.IntervalNum, a.lnLastPriceThreshold";
+        print "start to create m"
+        sqlm = "create view m(TimeRang, ComputeLantency, IntervalNum, lnLastPriceThreshold, MuBound, tradeNum, avgHoldTime) as " \
+               "select * from mubound20170909 where tradeNum>" + str(tradeNumbound) + " order by ComputeLantency,IntervalNum,lnLastPriceThreshold, MuBound desc"
+        print sqlm
+        db.cur.execute(sqlm)
+        db.conn.commit()
+
+        print "start to create t"
+        sqlt = "create view t(TimeRang, ComputeLantency, IntervalNum, lnLastPriceThreshold, MuBound) as " \
+               "select TimeRang, ComputeLantency, IntervalNum, lnLastPriceThreshold, max(MuBound) " \
+               "from m group by ComputeLantency, IntervalNum, lnLastPriceThreshold"
+        print sqlt
+        db.cur.execute(sqlt)
+        db.conn.commit()
+
+        print "start to join two table"
+        sql1 = "select t.*, m.tradeNum, m.avgHoldTime " \
+               "from t inner join m on t.ComputeLantency=m.ComputeLantency and t.IntervalNum=m.IntervalNum " \
+               "and t.lnLastPriceThreshold=m.lnLastPriceThreshold and t.MuBound=m.MuBound"
+        print sql1
         imex.mysqlToCSV(sql1, 10000, "/home/emily/桌面/", "MuBoundTradeNum" + str(tradeNumbound) + ".csv")
+
+        print "start to drop m,t"
+        sql2 = "drop view m,t "
+        db.cur.execute(sql2)
+        db.conn.commit()
