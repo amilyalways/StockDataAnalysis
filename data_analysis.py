@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
+from __future__ import division
 import pymysql
 import matplotlib.pyplot as plt
+
 
 # connect to db
 def connect_db(host, db, username, password):
@@ -60,7 +61,7 @@ def drop_table(cur, conn, tablename):
 def write_revenue_db(cur, conn,month_list,from_table, to_table):
 
     offset = 100000
-    sql2 = "select count(*) from " + str(from_table)
+    sql2 = "select count(*) from " + str(from_table) + " where ComputeLantency=6 and IntervalNum=6"
     cur.execute(sql2)
     record_num = cur.fetchall()[0]['count(*)']
     start = 0
@@ -68,7 +69,7 @@ def write_revenue_db(cur, conn,month_list,from_table, to_table):
 
 
     while start < record_num:
-        sql3 = "select * from "+ str(from_table) + " limit " + str(start) + ", " + str(offset)
+        sql3 = "select * from "+ str(from_table) + " where ComputeLantency=6 and IntervalNum=6 limit " + str(start) + ", " + str(offset)
         cur.execute(sql3)
         result = cur.fetchall()
 
@@ -80,15 +81,15 @@ def write_revenue_db(cur, conn,month_list,from_table, to_table):
             if re['isOpen'] == 0:
                 revenue = ComputeRevenue(BeforePrice, re['LastPrice'], re['isLong'])
                 sql4 = "insert into " + str(to_table) + " (Day,Times,LastPrice, isOpen,isLong,ComputeLantency," \
-                       "IntervalNum, inMuUpper,outMuUpper,StopDown,StopUp,Revenue ) values( '"
+                       "IntervalNum, InMuUpper, lnLastPriceThreshold, Revenue ) values( '"
                 sql4 += str(re['Times'][:8]) + "', '" + str(re['Times']) + "', " + str(re['LastPrice']) + ", " + str(re['isOpen'])
                 sql4 += ", " + str(re['isLong']) + ", " + str(re['ComputeLantency']) + ", " + str(re['IntervalNum']) + ", "
-                sql4 += str(inMuUpper) + ", " + str(re['MuUpper']) + ", " + str(re['StopDown']) + ", " + str(re['StopUp']) + ", "+str(revenue) + ") "
+                sql4 += str(re['InMuUpper']) + ", " + str(re['lnLastPriceThreshold']) + ", "+str(revenue) + ") "
                 # print(sql4)
                 cur.execute(sql4)
 
             BeforePrice = re['LastPrice']
-            inMuUpper = re['MuUpper']
+            #inMuUpper = re['MuUpper']
 
         conn.commit()
         start = start + offset
@@ -194,11 +195,12 @@ def statistic(cur,conn,sql,record_num,time,range):
                         lose = 0
                         tie = 1
                         tie_count += 1
-
+                '''
                 update_statistic(statistics_ComputeLantency, re['ComputeLantency'], revenue, win, lose, tie)
                 update_statistic(statistics_IntervalNum, re['IntervalNum'], revenue, win, lose, tie)
                 update_statistic(statistics_MuUpper, re['MuUpper'], revenue, win, lose, tie)
-                C_I_M = str(re['ComputeLantency']) + "_" + str(re['IntervalNum']) + "_" + str(re['MuUpper'])
+                '''
+                C_I_M = str(re['ComputeLantency']) + "_" + str(re['IntervalNum']) + "_" + str(re['InMuUpper'])
                 update_statistic(statistics_C_I_M, C_I_M, revenue, win, lose, tie)
 
                 count += 1
@@ -213,6 +215,7 @@ def statistic(cur,conn,sql,record_num,time,range):
 
         for re in result:
             revenue = re['Revenue']
+            print revenue
             if revenue > 0:
                 win = 1
                 lose = 0
@@ -231,11 +234,12 @@ def statistic(cur,conn,sql,record_num,time,range):
                     lose = 0
                     tie = 1
                     tie_count += 1
-
+            '''
             update_statistic(statistics_ComputeLantency, re['ComputeLantency'], revenue, win, lose, tie)
             update_statistic(statistics_IntervalNum, re['IntervalNum'], revenue, win, lose, tie)
-            update_statistic(statistics_MuUpper, re['MuUpper'], revenue, win, lose, tie)
-            C_I_M = str(re['ComputeLantency']) + "_" + str(re['IntervalNum']) + "_" + str(re['MuUpper'])
+            update_statistic(statistics_MuUpper, re['InMuUpper'], revenue, win, lose, tie)
+            '''
+            C_I_M = str(re['ComputeLantency']) + "_" + str(re['IntervalNum']) + "_" + str(re['InMuUpper'])
             update_statistic(statistics_C_I_M, C_I_M, revenue, win, lose, tie)
 
             count += 1
@@ -246,14 +250,15 @@ def statistic(cur,conn,sql,record_num,time,range):
     print("finished statistic and start to write db")
 
     average_revenue = total_revenue / count
-    win_percent = win_count / count
-    lose_percent = lose_count / count
-    tie_percent = tie_count / count
-
+    win_percent = float(win_count) / count
+    lose_percent = float(lose_count) / count
+    tie_percent = float(tie_count) / count
+    '''
     write_stats_db(cur,conn,"","",time,range,total_revenue,average_revenue,count,win_percent,lose_percent,tie_percent)
     write_dict_db(statistics_ComputeLantency,cur,conn,"ComputeLantency",time,range)
     write_dict_db(statistics_IntervalNum, cur, conn, "IntervalNum", time, range)
     write_dict_db(statistics_MuUpper, cur, conn, "MuUpper", time, range)
+    '''
     write_dict_db(statistics_C_I_M, cur, conn, "C_I_M", time, range)
 
     print("total revenue: "+ str(total_revenue))
@@ -287,14 +292,14 @@ def statistic_all(cur,conn):
     print("-----------------------------------------------------------------------------------")
 
 #statistic for one month data
-def statistic_month(cur, conn, month):
-    sql = "select ComputeLantency,IntervalNum, MuUpper,Revenue from revenue where Times like '" + month + "%'"
-    sql2 = "select count(*) from revenue where Times like '" + month + "%'"
+def statistic_month(cur, conn, month, tablename):
+    sql = "select ComputeLantency,IntervalNum, InMuUpper,Revenue from " + tablename + " where Times like '" + month + "%'"
+    sql2 = "select count(*) from " + tablename + " where Times like '" + month + "%'"
     cur.execute(sql2)
     record_num = cur.fetchall()[0]['count(*)']
     print("statistic_month ")
     print(month)
-    statistic(cur,conn,sql,record_num, month,"0")
+    statistic(cur,conn,sql,record_num, month,"1")
     print("-----------------------------------------------------------------------------------")
 
 #statistic for top revenue in all data
@@ -394,7 +399,7 @@ def clear_table(cur,conn,tablename):
 
 
 
-conn1 = connect_db('localhost','stockresult','root','0910mysql@')
+conn1 = connect_db('localhost','stockresult','root','0910@mysql')
 cur1 = conn1.cursor()
 
 '''
@@ -428,7 +433,8 @@ for key in stats:
 
 
 #drop_table(cur1, conn1, "revenue20170426stop")
-tablename ="revenue20170516stop"
+tablename ="revenue20170901"
+'''
 features = "Day varchar(50)," \
            "Times varchar(50), " \
            "LastPrice double, " \
@@ -441,14 +447,41 @@ features = "Day varchar(50)," \
            "StopDown int(11), " \
            "StopUp int(11), " \
            "Revenue double"
+'''
+features = "Day varchar(50)," \
+           "Times varchar(50), " \
+           "LastPrice double, " \
+           "isOpen int(11), " \
+           "isLong int(11), " \
+           "ComputeLantency int(11), " \
+           "IntervalNum int(11), " \
+           "InMuUpper double," \
+           "lnLastPriceThreshold double,"\
+           "Revenue double"
+
 
 create_table(cur1,conn1,tablename, features)
 
 
 month_list = {}
-write_revenue_db(cur1,conn1,month_list,"tradeinfos20170516stop","revenue20170516stop")
+write_revenue_db(cur1,conn1,month_list,"170807readcsv","revenue20170901")
 for month in month_list:
     print(month)
+
+
+
+features = "C_I_M varchar(50)," \
+           "Times varchar(50), " \
+           "isTop int(11), " \
+           "total_revenue double," \
+           "average_revenue double," \
+           "count int(11), " \
+           "win_percent double, " \
+           "lose_percent double," \
+           "tie_percent double," \
+           " PRIMARY KEY (`C_I_M`, `Times`,`isTop`)"
+create_table(cur1,conn1,"stats_c_i_m",features)
+statistic_month(cur1, conn1, "201306", "revenue20170901")
 
 
 '''

@@ -2,6 +2,7 @@ import pymysql
 
 class DB:
 
+
     # connect to db
     def __init__(self,host,db,username,password):
         config = {

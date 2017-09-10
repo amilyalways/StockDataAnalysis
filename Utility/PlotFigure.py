@@ -1,6 +1,8 @@
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator,FormatStrFormatter
 import seaborn as sns
+import pandas as pd
+import numpy as np
 
 
 class Figure:
@@ -117,20 +119,25 @@ class DoubleAxisLineChart(Figure):
 
 class BoxFigure(Figure):
 
-    def __init__(self,df):
+    def __init__(self, df):
         self.df = df
 
-    def plot(self):
-        self.df.plot(kind='box',figsize=(60,35))
+    def plot(self, ymin, ymax):
+        self.df.plot(kind='box', figsize=(60,35))
+        plt.title("ComputeLantency=6 and IntervalNum=6 Revenue distribution", fontsize=60)
+        plt.xlabel("InMuUpper_lnLastPriceThreshold", fontsize=55)
+        plt.yticks(range(ymin, ymax), fontsize=45)
+        plt.ylim(ymin, ymax)
+        plt.grid(True, axis='y')
 
-    def sns_plot(self,ymin,ymax):
+
+    def sns_plot(self, ymin, ymax):
         plt.subplots(figsize=(60,35))
-        plt.xlabel("inMuUpper_outMuUpper",fontsize=55)
-        plt.ylabel("Dmax",fontsize=55)
+        plt.title("ComputeLantency=6 and IntervalNum=6 Revenue distribution")
+        plt.xlabel("InMuUpper_lnLastPriceThreshold",fontsize=55)
+        plt.ylabel("Revenue",fontsize=55)
         plt.yticks(range(ymin,ymax),fontsize=45)
-        sns.boxplot(self.df, width=0.5)
-
-
+        sns.boxplot(self.df, orient="v", width=0.5)
 
 
 

@@ -791,7 +791,7 @@ def plot_one_hour_trade(cur,hour,tablename2, Computelantency, IntervalNum, MuUpp
 
 
     for pos in position_list:
-        print(str(pos) + "  ", end='')
+        print(str(pos) + "  ")
         print(position_list[pos])
 
 
@@ -901,8 +901,13 @@ def get_part_arr_point(arr_y,arr_x,iteration,length_x):
     print(list_x)
     return list_x,list_y
 
-def plot_minute_trade(cur,hour, minute, tablename2, Computelantency, IntervalNum, MuUpper, type, isLog,path, **InnerValue):
+def plot_minute_trade(cur,hour, minute, tablename2, Computelantency, IntervalNum, MuUpper, lnLastPriceThreshold, type, isLog,path, **InnerValue):
     tablename1 = "data" + hour[0:6]
+    sql0 = "select min(LastPrice), max(LastPrice) from " + tablename1
+    cur.execute(sql0)
+    result0 = cur.fetchall()
+    minLastPrice = result0[0]['min(LastPrice)']
+    maxLastPrice = result0[0]['max(LastPrice)']
     sql1 = "select * from " + tablename1 + " where Times like '" + hour + "%' "
     cur.execute(sql1)
     result1 = cur.fetchall()
@@ -910,7 +915,7 @@ def plot_minute_trade(cur,hour, minute, tablename2, Computelantency, IntervalNum
         result1 = result1[2:]
 
     sql2 = "select * from " + tablename2 + " where Times like '" + hour + "%'"
-    sql2 += " and Computelantency=" + Computelantency + " and IntervalNum=" + IntervalNum + " and MuUpper=" + MuUpper
+    sql2 += " and Computelantency=" + Computelantency + " and IntervalNum=" + IntervalNum + " and InMuUpper=" + MuUpper
 
     cur.execute(sql2)
     result2 = cur.fetchall()
@@ -919,6 +924,7 @@ def plot_minute_trade(cur,hour, minute, tablename2, Computelantency, IntervalNum
     for re in result2:
         value = {'position': 0, 'LastPrice': re['LastPrice'], 'isOpen': re['isOpen'], 'isLong': re['isLong']}
         point_list.setdefault(re['Times'], value)
+
 
     arr_y = []
     arr_x = []
@@ -978,7 +984,7 @@ def plot_minute_trade(cur,hour, minute, tablename2, Computelantency, IntervalNum
     print("start to plot trend")
 
     for pos in position_list:
-        print(str(pos) + "  ", end='')
+        print(str(pos) + "  ")
         print(position_list[pos])
 
     if isLog:
@@ -1029,7 +1035,6 @@ def plot_minute_trade(cur,hour, minute, tablename2, Computelantency, IntervalNum
                 arr_point_in_short_x.append(point_list[point]['position'])
                 arr_point_in_short_y.append(point_list[point]['LastPrice'])
 
-
         else:
             if point_list[point]['isLong'] == 1:
                 arr_point_out_long_x.append(point_list[point]['position'])
@@ -1066,10 +1071,12 @@ def plot_minute_trade(cur,hour, minute, tablename2, Computelantency, IntervalNum
         print(end)
         x = arr_x[start:end]
         y = arr_y[start:end]
-        title = tablename2 + "_" + hour + "_" + type + "_" + Computelantency + "_" + IntervalNum + "_" + MuUpper + "_" + str(i)
+        title = hour + "_" + Computelantency + "_" + IntervalNum + "_" + MuUpper + "_" + \
+                lnLastPriceThreshold + "_" + str(i)
         plt.figure(figsize=(60, 35))
 
-        plot_sub_figure(x, y, title, "Times", ylabel, False, 5, 35, 45)
+        #plt.ylim(minLastPrice, maxLastPrice)
+        plot_sub_figure(x, y, title, "Times", ylabel, False, 3, 35, 45)
 
 
         print("finish plot trend and start to plot point")
@@ -1085,13 +1092,13 @@ def plot_minute_trade(cur,hour, minute, tablename2, Computelantency, IntervalNum
         point_out_short_x = list_point_out_short_x[i]
 
         if len(point_in_long_x) > 0:
-            plt.scatter(point_in_long_x, point_in_long_y, c="black", s=500, marker="+", label="In & Long")
+            plt.scatter(point_in_long_x, point_in_long_y, c="red", s=1000, marker="*", label="In & Long")
         if len(point_out_long_x) > 0:
-            plt.scatter(point_out_long_x, point_out_long_y, c="red", s=500, marker="+", label="Out & Long")
+            plt.scatter(point_out_long_x, point_out_long_y, c="green", s=1000, marker="o", label="Out & Long")
         if len(point_in_short_x) > 0:
-            plt.scatter(point_in_short_x, point_in_short_y, c="black", s=100, marker="o", label="In & Short")
+            plt.scatter(point_in_short_x, point_in_short_y, c="pink", s=1000, marker="*", label="In & Short")
         if len(point_out_short_x) > 0:
-            plt.scatter(point_out_short_x, point_out_short_y, c="red", s=100, marker="o", label="Out & Short")
+            plt.scatter(point_out_short_x, point_out_short_y, c="#C1FFC1", s=1000, marker="o", label="Out & Short")
         plt.legend(loc='upper right', prop={'size': 45})
 
         figname = title + ".png"
@@ -1114,7 +1121,7 @@ def plot_minute_trade(cur,hour, minute, tablename2, Computelantency, IntervalNum
 
 
 
-conn = connect_db('localhost','stockresult','root','0910mysql@')
+conn = connect_db('localhost','stockresult','root','0910@mysql')
 cur = conn.cursor()
 '''
 month_list = ["2013", "201303","201304","201305","201306","201307","201308","201309","201310","201311","201312","201405","201411"]
@@ -1239,30 +1246,31 @@ for table in table_list:
         isLog = True
 '''
 
-table_list = ["tradeinfoschangepoint", "tradeinfosmidexit"]
+table_list = ["170807readcsv"]
 for table in table_list:
 
     isLog = False
-    hour_list = ["20130625-09","20130625-10","20130625-11","20130625-13","20130625-14","20130625-15"]
-    day_list = []
-    sql = "SELECT distinct mid(Times,1,8) FROM "+ table
+    #hour_list = ["20130625-09","20130625-10","20130625-11","20130625-13","20130625-14","20130625-15"]
+    hour_list = []
+    sql = "SELECT distinct mid(Times,1,11) FROM "+ table
     cur.execute(sql)
     result = cur.fetchall()
     for re in result:
-        day_list.append(re['mid(Times,1,8)'])
-    print(day_list)
-    sql = "SELECT distinct ComputeLantency, IntervalNum,MuUpper FROM " + table
+        hour_list.append(re['mid(Times,1,11)'])
+    print hour_list
+    sql = "SELECT distinct ComputeLantency, IntervalNum, InMuUpper, lnLastPriceThreshold FROM " + table
+    sql += " where ComputeLantency=6 and IntervalNum=6"
     cur.execute(sql)
     result = cur.fetchall()
     for re in result:
-        minitue = 20
-        path = "C:\\Users\\songxue\\Desktop\\stats_info\\" + table + "_" + str(minitue) + "\\"
-        path += str(re['ComputeLantency']) + "_" + str(re['IntervalNum']) + "_" + str(re['MuUpper']) + "\\"
+        minitue = 30
+        path = "/Users/songxue/Desktop/stock/trade_no_ylim1/" + table + "_" + str(minitue) + "/"
+        path += str(re['ComputeLantency']) + "_" + str(re['IntervalNum']) + "_" + str(re['InMuUpper']) + "/"
         if not os.path.exists(path):
             os.makedirs(path)
 
         for hour in hour_list:
-            plot_minute_trade(cur, hour,minitue, table, str(re['ComputeLantency']), str(re['IntervalNum']), str(re['MuUpper']), "unknow", isLog, path)
+            plot_minute_trade(cur, hour,minitue, table, str(re['ComputeLantency']), str(re['IntervalNum']), str(re['InMuUpper']), str(re['lnLastPriceThreshold']), "unknow", isLog, path)
 
 close_db(cur,conn)
 
