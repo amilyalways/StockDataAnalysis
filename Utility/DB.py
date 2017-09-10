@@ -70,6 +70,23 @@ class DB:
         self.cur.execute(sql)
         self.conn.commit()
 
+    def create_table_copy(self, fromtable, totable, copy_cols=[], add_cols={}):
+        sql = "create table " + totable + " as select "
+        if len(copy_cols) > 0:
+            for col in copy_cols:
+                sql += col + ", "
+            sql = sql[:-2]
+        else:
+            sql += "*"
+        sql += " from " + fromtable + " limit 0"
+        print sql
+        self.db.cur.execute(sql)
+        self.conn.commit()
+
+        if len(add_cols) > 0:
+            for col in add_cols:
+                self.add_columns(totable, col, add_cols[col])
+
     # drop table
     def drop_table(self, tablename):
         sql = "drop table if exists " + tablename
@@ -88,5 +105,7 @@ class DB:
         self.cur.execute(sql)
         self.conn.commit()
 
-
+if __name__ == '__main__':
+    db = DB('localhost', 'stockresult','root','0910@mysql')
+    db.create_table_copy("t", "t1", ["a", "b"])
 
