@@ -18,14 +18,19 @@ class ImExport:
     def save_df_csv(self, df, path, filename):
         df.to_csv(path + filename)
 
-    def save_df_mysql(self):
-        pass
+    def save_df_mysql(self, df, tablename, index, index_label):
+        df.to_sql(tablename, self.db.conn, if_exists='append', index=index, index_label=index_label)
 
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
     # imex.mysqlToCSV("select * from t", 1000, "/Users/songxue/Desktop/", "t.csv")
-
+    sql = "select * from data201306 limit 10"
+    df = pd.read_sql(sql, db.conn)
+    print df
+    imex.save_df_mysql(df, "mm", True, "ID")
+    '''
+    #寻找满足不同tradeNum条件的,各个参数下最小的MuBound对应的记录
     tradeNumboundList = [1000, 2000, 3000]
     sql_set = "set sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'"
     db.cur.execute(sql_set)
@@ -56,3 +61,4 @@ if __name__ == '__main__':
         sql2 = "drop view m,t "
         db.cur.execute(sql2)
         db.conn.commit()
+        '''

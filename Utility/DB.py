@@ -70,8 +70,10 @@ class DB:
         self.cur.execute(sql)
         self.conn.commit()
 
-    def create_table_copy(self, fromtable, totable, copy_cols=[], add_cols={}):
-        sql = "create table " + totable + " as select "
+    def create_table_copy(self, fromtable, totable, copy_cols=[], add_cols={}, isDrop=False):
+        if isDrop:
+            self.drop_table(totable)
+        sql = "create table if not exists " + totable + " as select "
         if len(copy_cols) > 0:
             for col in copy_cols:
                 sql += col + ", "
@@ -80,12 +82,12 @@ class DB:
             sql += "*"
         sql += " from " + fromtable + " limit 0"
         print sql
-        self.db.cur.execute(sql)
+        self.cur.execute(sql)
         self.conn.commit()
 
         if len(add_cols) > 0:
             for col in add_cols:
-                self.add_columns(totable, col, add_cols[col])
+                self.add_column(totable, col, add_cols[col])
 
     # drop table
     def drop_table(self, tablename):
@@ -94,18 +96,36 @@ class DB:
         self.conn.commit()
 
     # add columns
-    def add_columns(self,tablename,column_name,datatype):
-        sql = "alter table " + tablename + " add " + column_name +" " + datatype
+    def add_column(self,tablename,column_name,datatype):
+        sql = "alter table " + tablename + " add " + column_name + " " + datatype
         self.cur.execute(sql)
         self.conn.commit()
 
     # drop columns
-    def drop_columns(self, tablename, column_name):
+    def drop_column(self, tablename, column_name):
         sql = "alter table " + tablename + " drop " + column_name
+        self.cur.execute(sql)
+        self.conn.commit()
+
+    # modify columns name
+    def rename_column(self, tablename, old_name, new_name, datatype):
+        sql = "alter table " + tablename + " change column " + old_name \
+              + " " + new_name + " " + datatype
+        self.cur.execute(sql)
+        self.conn.commit()
+
+    # modify columns order
+    def reorder_column(self, tablename, col_name, datatype, pre_col):
+        sql = "alter table " + tablename + " change column " + col_name \
+              + " " + col_name + " " + datatype + " default null after " + pre_col
         self.cur.execute(sql)
         self.conn.commit()
 
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult','root','0910@mysql')
-    db.create_table_copy("t", "t1")
+    add_cols = {'Revenue': "double"}
+    db.create_table_copy("data201306", "t1", copy_cols=["Times","LastPrice"], add_cols=add_cols, isDrop=True, )
+    db.insert("t1", " 20, 12.2, 3")
+    db.reorder_column("t1", "Times", "varchar(50)", "Revenue")
+
 

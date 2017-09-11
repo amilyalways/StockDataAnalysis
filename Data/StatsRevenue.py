@@ -20,16 +20,36 @@ class StatsRevenue:
 
     def save_revenue_mysql(self, fromtable, chunksize, totable, filedlist):
 
-        #self.db.create_table(fromtable, filedlist, isDrop=True)
+        trade_num = self.db.select(fromtable, "count(*)")[0]['count(*)'] / 2
+        start = 0
+        offset = 10000
 
-        sql1 = "select * from " + fromtable + " where isOpen=1"
-        df1s = pd.read_sql(sql1, self.db.conn, chunksize=chunksize)
-        sql2 = "select * from " + fromtable + " where isOpen=0"
-        df2s = pd.read_sql(sql2, self.db.conn, chunksize=chunksize)
+        while True:
+            sql1 = "select * from " + fromtable + " where isOpen=1 limit " + str(start) + "," + str(start+offset)
+            df1 = pd.read_sql(sql1, self.db.conn)
+            sql2 = "select * from " + fromtable + " where isOpen=0 limit " + str(start) + "," + str(start+offset)
+            df2 = pd.read_sql(sql2, self.db.conn)
 
-        for df1, df2 in df1s, df2s:
-            df1.append(df2)
-            print df1
+            print "df1: "
+            print df1[:3]
+            print "df2: "
+            print df2[:3]
+            print "append "
+
+            df2 = df2.loc[:, ["Times", "LastPrice","isOpen"]]
+            df3 = pd.concat([df1, df2], axis=1, join='inner')
+            print df3[:3]
+
+            start += offset
+            if start > trade_num:
+                break
+            print "---------------------------"
+
+
+
+
+
+
 
 
 
@@ -71,5 +91,5 @@ if __name__ == '__main__':
     IM = ImExport(S.db)
     IM.save_df_csv(df, "/Users/songxue/Desktop/", "x.csv")
     '''
-    S.save_revenue_mysql("170807readcsv ", 10000, "", "")
+    S.save_revenue_mysql("tradeinfos20170426", 10000, "", "")
 
