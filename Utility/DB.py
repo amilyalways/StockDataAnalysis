@@ -135,14 +135,14 @@ if __name__ == '__main__':
 
     record_num = len(df)
     print record_num
-    '''
+
     for record in df:
         values = "'" + record[2] + "',"
         for word in record[3:]:
             values += str(word) + ","
         values = values[:-1]
         db.insert("tradeinfos20170911", values)
-    '''
+
 
 
 
