@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pymysql
 from Utility.DB import DB
 from Utility.PlotFigure import LineChart
@@ -228,7 +229,7 @@ class Visualization:
             S.plot_figure(arr_point_out_short_x, arr_point_out_short_y, c="#458B74", s=200, marker="d", label="Out & Short")
             S.legend(loc='upper right', prop={'size': 30})
 
-            path = "/Users/songxue/Desktop/stock/" + str(tablename2) + "/" + str(ComputeLantency) + "_" + str(
+            path = "/home/emily/桌面/" + str(tablename2) + "/" + str(ComputeLantency) + "_" + str(
                 IntervalNum) + "_" + str(MuUpper) + "_" + str(lnPriceThreshold) + "/"
             if not os.path.exists(path):
                 os.makedirs(path)
@@ -474,7 +475,7 @@ V = Visualization()
 db = DB('localhost', 'stockresult','root','0910@mysql')
 #V.mintue_trend_mu("data201306", "innervaluemu",db,"20130625","20130625-09:45:00 0", "20130625-10:15:00 0", 20)
 
-'''
+
 table_list = ["170807readcsv"]
 for table in table_list:
     isLog = False
@@ -501,8 +502,8 @@ for table in table_list:
                     end = day + "-" + hours[h + 1]
                     V.trade_trend("data201306", table, db, day, start, end, 5, "6", "6",
                                   re['InMuUpper'], re['lnLastPriceThreshold'])
-'''
-V.Distribution_Revenue(db, "revenue20170901", "Revenue_dist20170908.png", "/Users/songxue/Desktop/")
+
+#V.Distribution_Revenue(db, "revenue20170901", "Revenue_dist20170908.png", "/Users/songxue/Desktop/")
 
 
 
