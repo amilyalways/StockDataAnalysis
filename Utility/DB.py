@@ -1,4 +1,5 @@
 import pymysql
+import pandas as pd
 
 class DB:
 
@@ -124,7 +125,26 @@ class DB:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult','root','0910@mysql')
     add_cols = {'Revenue': "double"}
-    db.create_table_copy("170807readcsv", "tradeinfos20170911" )
+    #db.create_table_copy("170807readcsv", "tradeinfos20170911" )
+    #db.drop_column("tradeinfos20170911","ID")
+    #db.drop_column("tradeinfos20170911", "CreateTime")
+
+    df = pd.read_csv("/Users/songxue/Desktop/history_with_time.csv")
+    df = df.values
+    print df
+
+    record_num = len(df)
+    print record_num
+    '''
+    for record in df:
+        values = "'" + record[2] + "',"
+        for word in record[3:]:
+            values += str(word) + ","
+        values = values[:-1]
+        db.insert("tradeinfos20170911", values)
+    '''
+
+
 
 
 
