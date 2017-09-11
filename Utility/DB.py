@@ -124,8 +124,7 @@ class DB:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult','root','0910@mysql')
     add_cols = {'Revenue': "double"}
-    db.create_table_copy("data201306", "t1", copy_cols=["Times","LastPrice"], add_cols=add_cols, isDrop=True, )
-    db.insert("t1", " 20, 12.2, 3")
-    db.reorder_column("t1", "Times", "varchar(50)", "Revenue")
+    db.create_table_copy("170807readcsv", "tradeinfos20170911" )
+
 
 
