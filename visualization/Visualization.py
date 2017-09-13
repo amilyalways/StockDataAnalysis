@@ -229,7 +229,7 @@ class Visualization:
             S.plot_figure(arr_point_out_short_x, arr_point_out_short_y, c="#458B74", s=200, marker="d", label="Out & Short")
             S.legend(loc='upper right', prop={'size': 30})
 
-            path = "/home/emily/桌面/" + str(tablename2) + "/" + str(ComputeLantency) + "_" + str(
+            path = "/Users/songxue/Desktop/" + str(tablename2) + "/" + str(ComputeLantency) + "_" + str(
                 IntervalNum) + "_" + str(MuUpper) + "_" + str(lnPriceThreshold) + "/"
             if not os.path.exists(path):
                 os.makedirs(path)
@@ -476,7 +476,7 @@ db = DB('localhost', 'stockresult','root','0910@mysql')
 #V.mintue_trend_mu("data201306", "innervaluemu",db,"20130625","20130625-09:45:00 0", "20130625-10:15:00 0", 20)
 
 
-table_list = ["170807readcsv"]
+table_list = ["tradeinfos20170911"]
 for table in table_list:
     isLog = False
     day_list = []
