@@ -45,15 +45,6 @@ class StatsRevenue:
                 break
             print "---------------------------"
 
-
-
-
-
-
-
-
-
-
     def stats_revenue(self, from_table, condition):
 
         paras = ""
@@ -66,6 +57,8 @@ class StatsRevenue:
         df1 = pd.read_sql(sql1, self.db.conn)
         df1.rename(columns={'count(*)': 'tradeNum', 'sum(Revenue)': 'total_revenue',
                             'avg(Revenue)': 'avg_revenue'}, inplace=True)
+        print sql1
+        print df1
 
         sql2 = sql0 + " where Revenue>0 " + " group by " + paras
         df2 = pd.read_sql(sql2, self.db.conn)
@@ -85,11 +78,14 @@ class StatsRevenue:
 
 if __name__ == '__main__':
     S = StatsRevenue()
-    '''
+
     condition = ["MID(Times,1,6)", "ComputeLantency", "IntervalNum", "InMuUpper", "lnLastPriceThreshold"]
-    df = S.stats_revenue("revenue20170901", condition)
-    IM = ImExport(S.db)
-    IM.save_df_csv(df, "/Users/songxue/Desktop/", "x.csv")
-    '''
-    S.save_revenue_mysql("tradeinfos20170426", 10000, "", "")
+    tables = ["revenue20170913", "revenue_cut20170913", "revenue_anti20170913"]
+    for table in tables:
+        df = S.stats_revenue(table, condition)
+        IM = ImExport(S.db)
+        IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20170913/", "stats_" + table +".csv")
+
+
+    #S.save_revenue_mysql("tradeinfos20170426", 10000, "", "")
 

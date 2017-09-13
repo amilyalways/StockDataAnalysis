@@ -126,10 +126,15 @@ class DB:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult','root','0910@mysql')
     add_cols = {'Revenue': "double"}
-    db.create_table_copy("170807readcsv", "tradeinfos20170911" )
-    db.drop_column("tradeinfos20170911","ID")
-    db.drop_column("tradeinfos20170911", "CreateTime")
+    from_tables = ["tradeinfos20170913", "tradeinfos_cut20170913", "tradeinfos_anti20170913"]
+    to_tables = ["revenue20170913", "revenue_cut20170913", "revenue_anti20170913"]
+    tables = zip(from_tables, to_tables)
+    for (from_table, to_table) in tables:
+        print from_table, to_table
+        db.create_table_copy(from_table, to_table, add_cols=add_cols)
+    #db.create_table_copy("170807readcsv", "tradeinfos20170911" )
 
+    '''
     df = pd.read_csv("/home/emily/桌面/history_with_time2.csv")
     df = df.values
 
@@ -144,6 +149,7 @@ if __name__ == '__main__':
             values += str(word) + ","
         values = values[:-1]
         db.insert("tradeinfos20170911", values)
+    '''
 
 
 

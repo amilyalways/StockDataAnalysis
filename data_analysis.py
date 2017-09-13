@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 from __future__ import division
 import pymysql
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 # connect to db
@@ -61,7 +61,7 @@ def drop_table(cur, conn, tablename):
 def write_revenue_db(cur, conn,month_list,from_table, to_table):
 
     offset = 100000
-    sql2 = "select count(*) from " + str(from_table) + " where ComputeLantency=6 and IntervalNum=6"
+    sql2 = "select count(*) from " + str(from_table)
     cur.execute(sql2)
     record_num = cur.fetchall()[0]['count(*)']
     start = 0
@@ -69,7 +69,8 @@ def write_revenue_db(cur, conn,month_list,from_table, to_table):
 
 
     while start < record_num:
-        sql3 = "select * from "+ str(from_table) + " where ComputeLantency=6 and IntervalNum=6 limit " + str(start) + ", " + str(offset)
+        print start
+        sql3 = "select * from "+ str(from_table) + " limit " + str(start) + ", " + str(offset)
         cur.execute(sql3)
         result = cur.fetchall()
 
@@ -80,16 +81,32 @@ def write_revenue_db(cur, conn,month_list,from_table, to_table):
                 month_list[re['Times'][0:8]] += 1
             if re['isOpen'] == 0:
                 revenue = ComputeRevenue(BeforePrice, re['LastPrice'], re['isLong'])
+                '''
                 sql4 = "insert into " + str(to_table) + " (Day,Times,LastPrice, isOpen,isLong,ComputeLantency," \
                        "IntervalNum, InMuUpper, lnLastPriceThreshold, Revenue ) values( '"
                 sql4 += str(re['Times'][:8]) + "', '" + str(re['Times']) + "', " + str(re['LastPrice']) + ", " + str(re['isOpen'])
                 sql4 += ", " + str(re['isLong']) + ", " + str(re['ComputeLantency']) + ", " + str(re['IntervalNum']) + ", "
                 sql4 += str(re['InMuUpper']) + ", " + str(re['lnLastPriceThreshold']) + ", "+str(revenue) + ") "
-                # print(sql4)
+                '''
+                part1 = ""
+                part2 = ""
+
+                for ele_re in re:
+                    part1 += ele_re + ","
+                    if ele_re == "Times" or ele_re == "CreateTime":
+                        part2 += "'" + str(re[ele_re]) + "',"
+                    else:
+                        part2 += str(re[ele_re]) + ","
+
+                part1 += "Revenue"
+                part2 += str(revenue)
+
+                sql4 = "insert into " + str(to_table) + " ( " + part1 + " ) values( " + part2 + " )"
+
                 cur.execute(sql4)
 
             BeforePrice = re['LastPrice']
-            #inMuUpper = re['MuUpper']
+
 
         conn.commit()
         start = start + offset
@@ -433,7 +450,7 @@ for key in stats:
 
 
 #drop_table(cur1, conn1, "revenue20170426stop")
-tablename ="revenue20170901"
+#tablename ="revenue20170901"
 '''
 features = "Day varchar(50)," \
            "Times varchar(50), " \
@@ -447,7 +464,7 @@ features = "Day varchar(50)," \
            "StopDown int(11), " \
            "StopUp int(11), " \
            "Revenue double"
-'''
+
 features = "Day varchar(50)," \
            "Times varchar(50), " \
            "LastPrice double, " \
@@ -461,15 +478,21 @@ features = "Day varchar(50)," \
 
 
 create_table(cur1,conn1,tablename, features)
-
+'''
 
 month_list = {}
-write_revenue_db(cur1,conn1,month_list,"170807readcsv","revenue20170901")
-for month in month_list:
-    print(month)
+from_tables = ["tradeinfos20170913", "tradeinfos_cut20170913", "tradeinfos_anti20170913"]
+to_tables = ["revenue20170913", "revenue_cut20170913", "revenue_anti20170913"]
+tables = zip(from_tables, to_tables)
+for (from_table, to_table) in tables:
+    print from_table, to_table
+    write_revenue_db(cur1, conn1, month_list, from_table, to_table)
+    for month in month_list:
+        print(month)
 
 
 
+'''
 features = "C_I_M varchar(50)," \
            "Times varchar(50), " \
            "isTop int(11), " \
@@ -484,7 +507,7 @@ create_table(cur1,conn1,"stats_c_i_m",features)
 statistic_month(cur1, conn1, "201306", "revenue20170901")
 
 
-'''
+
 features = "Times varchar(50), " \
            "isTop int(11), " \
            "total_revenue double," \
@@ -573,8 +596,7 @@ features = "C_I_M varchar(50)," \
 create_table(cur1,conn1,"day_stats_c_i_m",features)
 '''
 #statistic_day(cur1,conn1)
-'''
-'''
+
 '''
 #month_list = ["201303","201304","201305","201306","201307","201308","201309","201310","201311","201312"]
 for month in month_list:
