@@ -481,8 +481,8 @@ create_table(cur1,conn1,tablename, features)
 '''
 
 month_list = {}
-from_tables = ["tradeinfos20170913", "tradeinfos_cut20170913", "tradeinfos_anti20170913"]
-to_tables = ["revenue20170913", "revenue_cut20170913", "revenue_anti20170913"]
+from_tables = ["tradeinfos20170914", "tradeinfos_cut20170914", "tradeinfos_anti20170914"]
+to_tables = ["revenue20170914", "revenue_cut20170914", "revenue_anti20170914"]
 tables = zip(from_tables, to_tables)
 for (from_table, to_table) in tables:
     print from_table, to_table
