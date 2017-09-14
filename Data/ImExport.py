@@ -8,6 +8,10 @@ class ImExport:
     def __init__(self, db):
         self.db = db
 
+    def excel_to_df(self, path, filename, sheetname):
+        df = pd.read_excel(path+filename, sheetname=sheetname)
+        return df
+
     def mysqlToCSV(self, sql, chunksize, path, resultTableName):
         result = pd.read_sql(sql, self.db.conn, chunksize=chunksize)
         header = True
@@ -25,10 +29,8 @@ if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
     # imex.mysqlToCSV("select * from t", 1000, "/Users/songxue/Desktop/", "t.csv")
-    sql = "select * from data201306 limit 10"
-    df = pd.read_sql(sql, db.conn)
-    print df
-    imex.save_df_mysql(df, "mm", True, "ID")
+    print imex.excel_to_df("/home/emily/桌面/", "abc.xlsx", "Sheet1")
+
     '''
     #寻找满足不同tradeNum条件的,各个参数下最小的MuBound对应的记录
     tradeNumboundList = [1000, 2000, 3000]

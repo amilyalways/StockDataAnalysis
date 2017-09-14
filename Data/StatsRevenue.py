@@ -9,7 +9,7 @@ class StatsRevenue:
 
     def __init__(self):
         self.db = DB('localhost', 'stockresult','root','0910@mysql')
-
+    '''
     def compute_revenue(self, price1, price2, isLong):
 
         if isLong == 0:
@@ -17,6 +17,12 @@ class StatsRevenue:
         else:
             t = 1
         return (price2 - price1) * t
+    '''
+    def compute_revenue(self, x):
+        if x['isLong'] == 0:
+            return x['InLastPrice'] - x['OutLastPrice']
+        else:
+            return x['OutLastPrice'] - x['InLastPrice']
 
     def save_revenue_mysql(self, fromtable, chunksize, totable, filedlist):
 
@@ -27,18 +33,20 @@ class StatsRevenue:
         while True:
             sql1 = "select * from " + fromtable + " where isOpen=1 limit " + str(start) + "," + str(start+offset)
             df1 = pd.read_sql(sql1, self.db.conn)
+            df1.rename(columns={'Times': 'InTimes', 'LastPrice': 'InLastPrice'}, inplace=True)
+
             sql2 = "select * from " + fromtable + " where isOpen=0 limit " + str(start) + "," + str(start+offset)
             df2 = pd.read_sql(sql2, self.db.conn)
+            df2.rename(columns={'Times': 'OutTimes', 'LastPrice': 'OutLastPrice'}, inplace=True)
 
-            print "df1: "
-            print df1[:3]
-            print "df2: "
-            print df2[:3]
-            print "append "
 
-            df2 = df2.loc[:, ["Times", "LastPrice","isOpen"]]
+            df2 = df2.loc[:, ["OutTimes", "OutLastPrice","isOpen"]]
             df3 = pd.concat([df1, df2], axis=1, join='inner')
-            print df3[:3]
+
+
+            df3['Revenue'] = map(lambda x: df3['OutLastPrice']-df3['InLastPrice'] if x >0
+                                 else df3['InLastPrice']-df3['OutLastPrice'], df3['isLong'])
+            print df3.ix[[0,1,2], [ 'Revenue']]
 
             start += offset
             if start > trade_num:
@@ -80,7 +88,7 @@ class StatsRevenue:
 
 if __name__ == '__main__':
     S = StatsRevenue()
-
+    '''
     condition = ["MID(Times,1,6)", "ComputeLantency", "IntervalNum", "InMuUpper", "lnLastPriceThreshold"]
     tables = ["revenue20170914", "revenue_cut20170914", "revenue_anti20170914"]
     for table in tables:
@@ -88,6 +96,7 @@ if __name__ == '__main__':
         IM = ImExport(S.db)
         IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20170914/", "stats_" + table +".csv")
 
+    '''
 
-    #S.save_revenue_mysql("tradeinfos20170426", 10000, "", "")
+    S.save_revenue_mysql("tradeinfos20170914", 10000, "", "")
 
