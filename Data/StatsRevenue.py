@@ -3,6 +3,7 @@
 from Utility.DB import DB
 from ImExport import ImExport
 import pandas as pd
+import numpy as np
 
 #
 class StatsRevenue:
@@ -44,9 +45,9 @@ class StatsRevenue:
             df3 = pd.concat([df1, df2], axis=1, join='inner')
 
 
-            df3['Revenue'] = map(lambda x: df3['OutLastPrice']-df3['InLastPrice'] if x >0
-                                 else df3['InLastPrice']-df3['OutLastPrice'], df3['isLong'])
-            print df3.ix[[0,1,2], [ 'Revenue']]
+            df3['Revenue'] = map(lambda x, y, z: y-z if x >0
+                                 else z-y, df3['isLong'], df3['OutLastPrice'], df3['InLastPrice'])
+            print df3.ix[[0,1,2], ['InTimes', 'OutTimes', 'InLastPrice','OutLastPrice','isLong', 'Revenue']]
 
             start += offset
             if start > trade_num:
@@ -98,5 +99,7 @@ if __name__ == '__main__':
 
     '''
 
-    S.save_revenue_mysql("tradeinfos20170914", 10000, "", "")
+
+
+    #S.save_revenue_mysql("tradeinfos20170914", 10000, "", "")
 

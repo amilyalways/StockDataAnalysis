@@ -74,7 +74,7 @@ def write_revenue_db(cur, conn,month_list,from_table, to_table):
         cur.execute(sql3)
         result = cur.fetchall()
 
-        for re in result:
+        for re in result[:2]:
             if re['Times'][0:8] not in month_list:
                 month_list.setdefault(re['Times'][0:8], 1)
             else:
@@ -90,6 +90,8 @@ def write_revenue_db(cur, conn,month_list,from_table, to_table):
                 '''
                 part1 = ""
                 part2 = ""
+
+
 
                 for ele_re in re:
                     part1 += ele_re + ","

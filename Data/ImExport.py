@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 from Utility.DB import DB
+from matplotlib import pyplot as plt
 
 
 class ImExport:
@@ -33,16 +34,25 @@ if __name__ == '__main__':
     df = pd.read_sql(sql, db.conn)
     print df.describe()
     print df.quantile(0.9)
+    plt.rc('figure', figsize=(60,35))
+    fig = plt.figure()
+    ax1 = fig.add_subplot(3, 1, 1)
+    df['Revenue'].plot(ax=ax1, style='--')
     print "Win      ---------------"
     sql = "select Revenue from revenue20170914 where Times like '201306%' and Revenue>0"
     df = pd.read_sql(sql, db.conn)
     print df.describe()
     print df.quantile(0.9)
+    ax2 = fig.add_subplot(3, 1, 2)
+    df['Revenue'].plot(ax=ax2, style='--')
     print "Lose     ---------------"
     sql = "select Revenue from revenue20170914 where Times like '201306%' and Revenue<0"
     df = pd.read_sql(sql, db.conn)
     print df.describe()
     print df.quantile(0.08)
+    ax3 = fig.add_subplot(3, 1, 3)
+    df['Revenue'].plot(ax=ax3, style='--')
+    plt.savefig("/home/emily/桌面/m.png", bbox_inches='tight')
 
     # imex.mysqlToCSV("select * from t", 1000, "/Users/songxue/Desktop/", "t.csv")
     #print imex.excel_to_df("/home/emily/桌面/", "abc.xlsx", "Sheet1")
