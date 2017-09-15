@@ -28,8 +28,24 @@ class ImExport:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
+    print "total   ---------------"
+    sql = "select Revenue from revenue20170914 where Times like '201306%'"
+    df = pd.read_sql(sql, db.conn)
+    print df.describe()
+    print df.quantile(0.9)
+    print "Win      ---------------"
+    sql = "select Revenue from revenue20170914 where Times like '201306%' and Revenue>0"
+    df = pd.read_sql(sql, db.conn)
+    print df.describe()
+    print df.quantile(0.9)
+    print "Lose     ---------------"
+    sql = "select Revenue from revenue20170914 where Times like '201306%' and Revenue<0"
+    df = pd.read_sql(sql, db.conn)
+    print df.describe()
+    print df.quantile(0.08)
+
     # imex.mysqlToCSV("select * from t", 1000, "/Users/songxue/Desktop/", "t.csv")
-    print imex.excel_to_df("/home/emily/桌面/", "abc.xlsx", "Sheet1")
+    #print imex.excel_to_df("/home/emily/桌面/", "abc.xlsx", "Sheet1")
 
     '''
     #寻找满足不同tradeNum条件的,各个参数下最小的MuBound对应的记录
