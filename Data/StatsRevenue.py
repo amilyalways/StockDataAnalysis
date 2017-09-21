@@ -90,12 +90,12 @@ class StatsRevenue:
 if __name__ == '__main__':
     S = StatsRevenue()
 
-    condition = ["MID(Times,1,8)", "ComputeLantency", "IntervalNum", "InMuUpper", "lnLastPriceThreshold"]
-    tables = ["revenue20170914", "revenue_cut20170914", "revenue_anti20170914"]
+    condition = ["MID(Times,1,6)", "ComputeLantency", "IntervalNum", "InMuUpper", "lnLastPriceThreshold"]
+    tables = ["revenue20170921"]
     for table in tables:
         df = S.stats_revenue(table, condition)
         IM = ImExport(S.db)
-        IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20170915/", "stats_" + table +".csv")
+        IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20170921/", "stats_month_" + table +".csv")
 
 
 

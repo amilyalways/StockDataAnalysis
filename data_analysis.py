@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 from __future__ import division
 import pymysql
+from Utility.DB import DB
 #import matplotlib.pyplot as plt
 
 
@@ -74,7 +75,7 @@ def write_revenue_db(cur, conn,month_list,from_table, to_table):
         cur.execute(sql3)
         result = cur.fetchall()
 
-        for re in result[:2]:
+        for re in result:
             if re['Times'][0:8] not in month_list:
                 month_list.setdefault(re['Times'][0:8], 1)
             else:
@@ -90,12 +91,9 @@ def write_revenue_db(cur, conn,month_list,from_table, to_table):
                 '''
                 part1 = ""
                 part2 = ""
-
-
-
                 for ele_re in re:
                     part1 += ele_re + ","
-                    if ele_re == "Times" or ele_re == "CreateTime":
+                    if ele_re == "Times" or ele_re == "CreateTime" or ele_re == "TheKey":
                         part2 += "'" + str(re[ele_re]) + "',"
                     else:
                         part2 += str(re[ele_re]) + ","
@@ -483,11 +481,15 @@ create_table(cur1,conn1,tablename, features)
 '''
 
 month_list = {}
-from_tables = ["tradeinfos20170914", "tradeinfos_cut20170914", "tradeinfos_anti20170914"]
-to_tables = ["revenue20170914", "revenue_cut20170914", "revenue_anti20170914"]
+from_tables = ["tradeinfos20170921"]
+to_tables = ["revenue20170921"]
 tables = zip(from_tables, to_tables)
+db = DB('localhost', 'stockresult','root','0910@mysql')
+add_cols = {'Revenue': "double"}
+
 for (from_table, to_table) in tables:
     print from_table, to_table
+    db.create_table_copy(from_table, to_table, add_cols=add_cols)
     write_revenue_db(cur1, conn1, month_list, from_table, to_table)
     for month in month_list:
         print(month)

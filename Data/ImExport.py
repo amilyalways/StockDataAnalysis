@@ -2,6 +2,7 @@
 import pandas as pd
 from Utility.DB import DB
 from matplotlib import pyplot as plt
+import os
 
 
 class ImExport:
@@ -21,6 +22,8 @@ class ImExport:
             header = False
 
     def save_df_csv(self, df, path, filename):
+        if not os.path.exists(path):
+            os.makedirs(path)
         df.to_csv(path + filename)
 
     def save_df_mysql(self, df, tablename, index, index_label):
