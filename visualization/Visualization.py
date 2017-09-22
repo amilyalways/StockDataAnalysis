@@ -96,7 +96,6 @@ class Visualization:
             arr_y.append(re['Mu'])
             arr_x.append(re['times'])
 
-
     def day_Mu(self,tablename, db, num):
         f = open("C:\\Users\\songxue\\Desktop\\Day.txt",'r')
         lines = f.readlines()
@@ -153,8 +152,6 @@ class Visualization:
                 L2 += sample
 
             return sample_times[self.long_to_time(L2)]['pos'], sample_times[self.long_to_time(L2)]['LastPrice']
-
-
 
     def trade_trend(self, tablename1, tablename2, db, day, start, end, sample, ComputeLantency, IntervalNum, MuUpper,lnPriceThreshold):
         result1 = db.select(tablename1, "*", condition="times like '" + day + "%'")
@@ -369,7 +366,7 @@ class Visualization:
         path = "C:\\Users\\songxue\\Desktop\\"
         D.save(figname, path)
 
-    def get_mu(self,tablename1,db,day,start,sample):
+    def get_mu(self, tablename1, db, day, start, sample):
         time_list = []
         f = open("C:\\Users\\songxue\\Desktop\\Times.txt")
         lines = f.readlines()
@@ -467,14 +464,10 @@ class Visualization:
 
 
 
-
 V = Visualization()
-
-
 
 db = DB('localhost', 'stockresult','root','0910@mysql')
 #V.mintue_trend_mu("data201306", "innervaluemu",db,"20130625","20130625-09:45:00 0", "20130625-10:15:00 0", 20)
-
 
 table_list = ["tradeinfos20170911"]
 for table in table_list:
