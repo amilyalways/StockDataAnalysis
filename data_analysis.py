@@ -3,7 +3,7 @@
 from __future__ import division
 import pymysql
 from Utility.DB import DB
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 # connect to db
@@ -163,8 +163,6 @@ def write_dict_db(dict,cur,conn,feature,time,range):
         r = dict[key]
         write_stats_db(cur,conn,feature,key,time,range,r['totalRevenue'], r['averRevenue'],r['count'],r['win']/r['count'],r['lose']/r['count'],r['tie']/r['count'])
 
-
-
 def statistic(cur,conn,sql,record_num,time,range):
     statistics_ComputeLantency = {}
     statistics_IntervalNum = {}
@@ -297,7 +295,6 @@ def statistic(cur,conn,sql,record_num,time,range):
     for key in statistics_MuUpper:
         print(statistics_MuUpper[key])
 
-
 #statistic for all data
 def statistic_all(cur,conn):
     sql = "select ComputeLantency,IntervalNum, MuUpper,Revenue from revenue"
@@ -348,7 +345,6 @@ def is_trade_day(cur,day,tablename):
     else:
         return False
 
-
 def statistic_day(cur,conn,tablename,top,month):
     day_list = []
     for i in range(1,10):
@@ -360,8 +356,6 @@ def statistic_day(cur,conn,tablename,top,month):
     for day in day_list:
         if is_trade_day(cur,day,tablename):
             statistic_month(cur,conn,day)
-
-
 
 def find_candidate_day(cur,sql,candidate):
     cur.execute(sql)
@@ -397,15 +391,6 @@ def find_day(cur,tablename,offset):
             candidate_day.setdefault(day,C_I_M)
 
     return candidate_day
-
-
-
-
-
-
-
-
-
 
 #clear_table
 def clear_table(cur,conn,tablename):
