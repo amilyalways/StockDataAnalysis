@@ -74,8 +74,6 @@ class StatsRevenue:
         df2.rename(columns={'count(*)': 'winNum', 'sum(Revenue)': 'total_revenue(win)',
                             'avg(Revenue)': 'avg_revenue(win)'}, inplace=True)
 
-        df2['winPercent'] = df2['winNum'] / df1['tradeNum']
-
         sql3 = sql0 + " where Revenue<0 " + " group by " + paras
         df3 = pd.read_sql(sql3, self.db.conn)
         df3.rename(columns={'count(*)': 'loseNum', 'sum(Revenue)': 'total_revenue(lose)',
@@ -83,6 +81,8 @@ class StatsRevenue:
 
         df = pd.merge(df1, df2, how='left', on=condition)
         df = pd.merge(df, df3, how='left', on=condition)
+        df['winPercent'] = df['winNum'] / df['tradeNum']
+        df.fillna(0)
 
         return df
 
@@ -90,12 +90,12 @@ class StatsRevenue:
 if __name__ == '__main__':
     S = StatsRevenue()
 
-    condition = ["MID(Times,1,6)", "ComputeLantency", "IntervalNum", "InMuUpper", "lnLastPriceThreshold"]
+    condition = ["MID(Times,1,8)", "ComputeLantency", "IntervalNum", "InMuUpper", "lnLastPriceThreshold"]
     tables = ["revenue20170921"]
     for table in tables:
         df = S.stats_revenue(table, condition)
         IM = ImExport(S.db)
-        IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20170921/", "stats_month_" + table +".csv")
+        IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20170921/", "stats_day_" + table +".csv")
 
 
 
