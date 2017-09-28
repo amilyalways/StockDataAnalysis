@@ -87,7 +87,7 @@ class Visualization:
         L.plot_figure(x, y)
         L.save(figname, path)
 
-    def get_one_day_Mu(self,tablename, day, db, arr_y, arr_x):
+    def get_one_day_Mu(self, tablename, day, db, arr_y, arr_x):
         sql = "select times, Mu from " + tablename + " where times like '" + day + "%'"
         db.cur.execute(sql)
         result = db.cur.fetchall()
@@ -96,7 +96,7 @@ class Visualization:
             arr_y.append(re['Mu'])
             arr_x.append(re['times'])
 
-    def day_Mu(self,tablename, db, num):
+    def day_Mu(self, tablename, db, num):
         f = open("C:\\Users\\songxue\\Desktop\\Day.txt",'r')
         lines = f.readlines()
 
@@ -114,12 +114,12 @@ class Visualization:
             F.plot_figure(arr_x[:num],arr_y[:num])
             F.save(day + "_Mu.png","C:\\Users\\songxue\\Desktop\\DayMu\\")
 
-    def time_to_long(self,Times):
+    def time_to_long(self, Times):
         L = time.mktime(time.strptime(Times[:17], '%Y%m%d-%H:%M:%S'))
         L = L + int(Times[18:]) * 0.001
         return L
 
-    def long_to_time(self,L):
+    def long_to_time(self, L):
         times = time.localtime(L)
         return time.strftime('%Y%m%d-%H:%M:%S', times)
 

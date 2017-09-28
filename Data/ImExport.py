@@ -3,6 +3,7 @@ import pandas as pd
 from Utility.DB import DB
 from matplotlib import pyplot as plt
 import os
+import numpy as np
 
 
 class ImExport:
@@ -32,6 +33,28 @@ class ImExport:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
+    tablename = "tradeinfos20170423"
+    sql = "select * from " + tablename + " where ComputeLantency=5 and IntervalNum=6"
+    print sql
+    imex.mysqlToCSV(sql, 100000, "/home/emily/桌面/stockResult/", "tradeinfos20170928.csv")
+
+    '''
+    Mus = np.array(np.arange(0.0001, 0.0005, 0.0001))
+    Mu = 0.0004
+    OutMuUpper = Mu
+    for InMuUpper in Mus:
+        sql = "select * from " + tablename + " where ComputeLantency=5 and IntervalNum=6 and InMuUpper=" + \
+              str(InMuUpper) + " and " + "OutMuUpper=" + str(OutMuUpper)
+        print sql
+        imex.mysqlToCSV(sql, 100000, "/home/emily/桌面/stockResult/", "tradeinfos20170928.csv")
+    InMuUpper = Mu
+    for OutMuUpper in Mus[:-1]:
+        sql = "select * from " + tablename + " where ComputeLantency=5 and IntervalNum=6 and InMuUpper=" + \
+              str(InMuUpper) + " and " + "OutMuUpper=" + str(OutMuUpper)
+        print sql
+        imex.mysqlToCSV(sql, 100000, "/home/emily/桌面/stockResult/", "tradeinfos20170928.csv")
+    '''
+    '''
     print "total   ---------------"
     sql = "select Revenue from revenue20170914 where Times like '201306%'"
     df = pd.read_sql(sql, db.conn)
@@ -56,7 +79,7 @@ if __name__ == '__main__':
     ax3 = fig.add_subplot(3, 1, 3)
     df['Revenue'].plot(ax=ax3, style='--')
     plt.savefig("/home/emily/桌面/m.png", bbox_inches='tight')
-
+    '''
     # imex.mysqlToCSV("select * from t", 1000, "/Users/songxue/Desktop/", "t.csv")
     #print imex.excel_to_df("/home/emily/桌面/", "abc.xlsx", "Sheet1")
 
