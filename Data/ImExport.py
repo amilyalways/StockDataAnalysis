@@ -11,6 +11,9 @@ class ImExport:
     def __init__(self, db):
         self.db = db
 
+    def csv_to_mysql(self):
+        pass
+
     def excel_to_df(self, path, filename, sheetname):
         df = pd.read_excel(path+filename, sheetname=sheetname)
         return df
