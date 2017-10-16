@@ -36,7 +36,7 @@ if __name__ == '__main__':
     tablename = "tradeinfos20170930"
     sql = "select * from " + tablename
     print sql
-    imex.mysqlToCSV(sql, 100000, "/home/emily/桌面/stockResult/", "tradeinfos20170930.csv")
+    imex.mysqlToCSV(sql, 100000, "/home/emily/桌面/stockResult/", "tradeinfos20170930_2.csv")
 
     '''
     Mus = np.array(np.arange(0.0001, 0.0005, 0.0001))
