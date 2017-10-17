@@ -4,6 +4,8 @@ from Utility.DB import DB
 from matplotlib import pyplot as plt
 import os
 import numpy as np
+import mysql.connector
+from sqlalchemy import create_engine
 
 
 class ImExport:
@@ -11,8 +13,6 @@ class ImExport:
     def __init__(self, db):
         self.db = db
 
-    def csv_to_mysql(self):
-        pass
 
     def excel_to_df(self, path, filename, sheetname):
         df = pd.read_excel(path+filename, sheetname=sheetname)
@@ -30,16 +30,18 @@ class ImExport:
             os.makedirs(path)
         df.to_csv(path + filename)
 
-    def save_df_mysql(self, df, tablename, index, index_label):
-        df.to_sql(tablename, self.db.conn, if_exists='append', index=index, index_label=index_label)
+    def save_df_mysql(self, df, tablename, index):
+        engine = create_engine('mysql+pymysql://root:0910@mysql@localhost/stockresult', echo=False)
+        df.to_sql(tablename, engine, if_exists='append', index=index)
 
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
-    tablename = "tradeinfos20170930"
-    sql = "select * from " + tablename
-    print sql
-    imex.mysqlToCSV(sql, 100000, "/home/emily/桌面/stockResult/", "tradeinfos20170930_2.csv")
+    tablename = "tradeinfos20171017_pro"
+    path = "/home/emily/下载/"
+    filename = "history-profit.csv"
+
+
 
     '''
     Mus = np.array(np.arange(0.0001, 0.0005, 0.0001))

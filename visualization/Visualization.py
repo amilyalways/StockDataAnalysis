@@ -153,7 +153,7 @@ class Visualization:
 
             return sample_times[self.long_to_time(L2)]['pos'], sample_times[self.long_to_time(L2)]['LastPrice']
 
-    def trade_trend(self, tablename1, tablename2, db, day, start, end, sample, ComputeLantency, IntervalNum, MuUpper,lnPriceThreshold):
+    def trade_trend(self, tablename1, tablename2, db, tag, day, start, end, sample, ComputeLantency, IntervalNum, MuUpper,lnPriceThreshold):
         result1 = db.select(tablename1, "*", condition="times like '" + day + "%'")
         arr_y = []
         arr_x = []
@@ -190,6 +190,14 @@ class Visualization:
             arr_point_out_long_y = []
             arr_point_out_short_x = []
             arr_point_out_short_y = []
+            arr_point_in_turn_long_x = []
+            arr_point_in_turn_long_y = []
+            arr_point_in_turn_short_x = []
+            arr_point_in_turn_short_y = []
+            arr_point_out_turn_long_x = []
+            arr_point_out_turn_long_y = []
+            arr_point_out_turn_short_x = []
+            arr_point_out_turn_short_y = []
             print "finish sample trend and start to prepare for trade point"
             print(sample_time)
 
@@ -200,19 +208,37 @@ class Visualization:
                     break
                 x, y = self.find_nearest_time(re['Times'], sample, sample_time)
                 if re['isOpen'] == 1:
-                    if re['isLong'] == 1:
-                        arr_point_in_long_x.append(x)
-                        arr_point_in_long_y.append(y)
+                    if re[tag] == 1:
+                        if re['isLong'] == 1:
+                            arr_point_in_long_x.append(x)
+                            arr_point_in_long_y.append(y)
+                        else:
+                            arr_point_in_short_x.append(x)
+                            arr_point_in_short_y.append(y)
                     else:
-                        arr_point_in_short_x.append(x)
-                        arr_point_in_short_y.append(y)
+                        if re['isLong'] == 1:
+                            arr_point_in_turn_short_x.append(x)
+                            arr_point_in_turn_short_y.append(y)
+                        else:
+                            arr_point_in_turn_long_x.append(x)
+                            arr_point_in_turn_long_y.append(y)
+
                 else:
-                    if re['isLong'] == 1:
-                        arr_point_out_long_x.append(x)
-                        arr_point_out_long_y.append(y)
+                    if re[tag] == 1:
+                        if re['isLong'] == 1:
+                            arr_point_out_long_x.append(x)
+                            arr_point_out_long_y.append(y)
+                        else:
+                            arr_point_out_short_x.append(x)
+                            arr_point_out_short_y.append(y)
                     else:
-                        arr_point_out_short_x.append(x)
-                        arr_point_out_short_y.append(y)
+                        if re['isLong'] == 1:
+                            arr_point_out_turn_short_x.append(x)
+                            arr_point_out_turn_short_y.append(y)
+                        else:
+                            arr_point_out_turn_long_x.append(x)
+                            arr_point_out_turn_long_y.append(y)
+
             print "start to plot"
             title = start + "_" + str(ComputeLantency) + "_" + str(IntervalNum) + "_" + str(MuUpper)
             L = LineChart(label={'xlabel': "Times", 'ylabel': "LastPrice"}, title=title, isGrid=True)
@@ -221,12 +247,20 @@ class Visualization:
             S = Scatter()
 
             S.plot_figure(arr_point_in_long_x, arr_point_in_long_y, c="pink", s=600, marker="*", label="In & Long")
-            S.plot_figure(arr_point_out_long_x, arr_point_out_long_y, c="red", s=600, marker="+", label="Out & Long")
+            S.plot_figure(arr_point_out_long_x, arr_point_out_long_y, c="pink", s=100, marker="o", label="Out & Long")
             S.plot_figure(arr_point_in_short_x, arr_point_in_short_y, c="#90EE90", s=200, marker="s", label="In & Short")
-            S.plot_figure(arr_point_out_short_x, arr_point_out_short_y, c="#458B74", s=200, marker="d", label="Out & Short")
+            S.plot_figure(arr_point_out_short_x, arr_point_out_short_y, c="#90EE90", s=200, marker="d", label="Out & Short")
+
+            S.plot_figure(arr_point_in_turn_long_x, arr_point_in_turn_long_y, c="red", s=600, marker="*", label="In & Turn Long")
+            S.plot_figure(arr_point_out_turn_long_x, arr_point_out_turn_long_y, c="red", s=100, marker="o", label="Out & Turn Long")
+            S.plot_figure(arr_point_in_turn_short_x, arr_point_in_turn_short_y, c="#458B74", s=200, marker="s",
+                          label="In & Turn Short")
+            S.plot_figure(arr_point_out_turn_short_x, arr_point_out_turn_short_y, c="#458B74", s=200, marker="d",
+                          label="Out & Turn Short")
+
             S.legend(loc='upper right', prop={'size': 30})
 
-            path = "/Users/songxue/Desktop/" + str(tablename2) + "/" + str(ComputeLantency) + "_" + str(
+            path = "/home/emily/trade_trend/20171017/" + str(tag) + "/" + str(ComputeLantency) + "_" + str(
                 IntervalNum) + "_" + str(MuUpper) + "_" + str(lnPriceThreshold) + "/"
             if not os.path.exists(path):
                 os.makedirs(path)
@@ -469,32 +503,34 @@ V = Visualization()
 db = DB('localhost', 'stockresult','root','0910@mysql')
 #V.mintue_trend_mu("data201306", "innervaluemu",db,"20130625","20130625-09:45:00 0", "20130625-10:15:00 0", 20)
 
-table_list = ["tradeinfos20170911"]
+table_list = ["tradeinfos20171017ml"]
 for table in table_list:
     isLog = False
     day_list = []
-    sql = "SELECT distinct mid(Times,1,8) FROM "+ table + " where ComputeLantency=6 and IntervalNum=6"
+    sql = "SELECT distinct mid(Times,1,8) FROM "+ table + " where Times like '201306%' "
     db.cur.execute(sql)
     result = db.cur.fetchall()
     for re in result:
         day_list.append(re['mid(Times,1,8)'])
     print(day_list)
-    sql = "SELECT distinct InMuUpper,lnLastPriceThreshold  FROM " + table + " where ComputeLantency=6 and IntervalNum=6"
+    sql = "SELECT distinct InMuUpper, lnLastPriceThreshold  FROM " + table + " where ComputeLantency=6 and IntervalNum=6"
     db.cur.execute(sql)
     result = db.cur.fetchall()
     hours = ["09:00:00 0", "09:30:00 0","10:00:00 0", "10:30:00 0", "11:00:00 0", "11:30:00 0",
-             "12:00:00 0", "13:00:00 0", "13:30:00 0", "14:00:00 0", "14:30:00 0", "15:00:00 0",
-             "15:30:00 0", "16:00:00 0"]
-    for re in result:
-        for day in day_list:
-            for h in range(0, 13):
-                if h == 6:
-                    continue
-                else:
-                    start = day + "-" + hours[h]
-                    end = day + "-" + hours[h + 1]
-                    V.trade_trend("data201306", table, db, day, start, end, 5, "6", "6",
-                                  re['InMuUpper'], re['lnLastPriceThreshold'])
+             "13:00:00 0", "13:30:00 0", "14:00:00 0", "14:30:00 0", "15:00:00 0", "15:30:00 0"]
+    tags = ['pro_model', 'acc_model', 'eff_model']
+    for tag in tags:
+        for re in result:
+            for day in day_list:
+                for h in range(0, 11):
+                    if h == 5:
+                        continue
+                    else:
+                        start = day + "-" + hours[h]
+                        end = day + "-" + hours[h + 1]
+                        V.trade_trend("data201306", table, db, tag, day, start, end, 3, "6", "6",
+                                      re['InMuUpper'], re['lnLastPriceThreshold'])
+
 
 #V.Distribution_Revenue(db, "revenue20170901", "Revenue_dist20170908.png", "/Users/songxue/Desktop/")
 
