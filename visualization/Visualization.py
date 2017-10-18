@@ -8,6 +8,7 @@ from Utility.PlotFigure import BoxFigure
 import time
 import os
 import pandas as pd
+from matplotlib import pyplot as plt
 
 
 class Visualization:
@@ -44,13 +45,13 @@ class Visualization:
             'title': title,
         }
         if 'line_para' in config:
-            para.setdefault('line_para',config['line_para'])
+            para.setdefault('line_para', config['line_para'])
 
 
         L = LineChart(**para)
         if 'fig_para' in config:
             L.set_figsize(**config['fig_para'])
-        print(config['line_para'])
+
         L.plot_figure(x, y)
         L.save(figname, path)
 
@@ -260,7 +261,7 @@ class Visualization:
 
             S.legend(loc='upper right', prop={'size': 30})
 
-            path = "/home/emily/trade_trend/20171017/" + str(tag) + "/" + str(ComputeLantency) + "_" + str(
+            path = "/home/emily/trade_trend/20171018/" + str(tag) + "/" + str(ComputeLantency) + "_" + str(
                 IntervalNum) + "_" + str(MuUpper) + "_" + str(lnPriceThreshold) + "/"
             if not os.path.exists(path):
                 os.makedirs(path)
@@ -503,11 +504,15 @@ V = Visualization()
 db = DB('localhost', 'stockresult','root','0910@mysql')
 #V.mintue_trend_mu("data201306", "innervaluemu",db,"20130625","20130625-09:45:00 0", "20130625-10:15:00 0", 20)
 
+#V.trend("data201308", "20130816", 150, 300, "trend20130816", "/home/emily/trade_trend/20171018/", config=config )
+
+
 table_list = ["tradeinfos20171017ml"]
+
 for table in table_list:
     isLog = False
     day_list = []
-    sql = "SELECT distinct mid(Times,1,8) FROM "+ table + " where Times like '201306%' "
+    sql = "SELECT distinct mid(Times,1,8) FROM "+ table + " where Times like '20130618%' or Times like '20130628%' "
     db.cur.execute(sql)
     result = db.cur.fetchall()
     for re in result:
@@ -518,6 +523,7 @@ for table in table_list:
     result = db.cur.fetchall()
     hours = ["09:00:00 0", "09:30:00 0","10:00:00 0", "10:30:00 0", "11:00:00 0", "11:30:00 0",
              "13:00:00 0", "13:30:00 0", "14:00:00 0", "14:30:00 0", "15:00:00 0", "15:30:00 0"]
+
     tags = ['pro_model', 'acc_model', 'eff_model']
     for tag in tags:
         for re in result:
