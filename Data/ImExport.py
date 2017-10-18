@@ -40,6 +40,11 @@ if __name__ == '__main__':
     tablename = "tradeinfos20171017_pro"
     path = "/home/emily/下载/"
     filename = "history-profit.csv"
+    sql = "select Revenue_pro_model " \
+          "from revenue20171017ml where pro_model=1 "
+    df = pd.read_sql(sql, db.conn)
+    print df.describe()
+
 
 
 
