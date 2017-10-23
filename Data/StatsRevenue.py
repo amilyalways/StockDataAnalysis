@@ -55,7 +55,7 @@ class StatsRevenue:
                 else z - y, df3['isLong'], df3['OutLastPrice'], df3['InLastPrice'])
 
 
-            print df3.ix[[1660,1661,1662], ['InTimes', 'OutTimes', 'InLastPrice','OutLastPrice','isLong', 'Revenue_pro_model', MLtags[0]]]
+            #print df3.ix[[1660,1661,1662], ['InTimes', 'OutTimes', 'InLastPrice','OutLastPrice','isLong', 'Revenue_pro_model', MLtags[0]]]
 
             imex.save_df_mysql(df3, totable, False)
             start += offset
@@ -105,16 +105,18 @@ if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
     MLtags = ['pro_model', 'acc_model', 'eff_model']
-    #S.save_revenue_mysql(imex, "tradeinfos20171017ml", 100000, "revenue20171017ml", "", True, MLtags)
-    Reveunes = ['Revenue_pro_model', 'Revenue_acc_model', 'Revenue_eff_model']
+    #S.save_revenue_mysql(imex, "20171019expect", 100000, "revenue20171023", "", False, MLtags)
+
+
+    Reveunes = ['Revenue']
     for Reveune in Reveunes:
         print Reveune
 
-        condition = ["MID(InTimes,1,8)", "ComputeLantency", "IntervalNum", "InMuUpper", "OutMuUpper", "lnLastPriceThreshold"]
-        tables = ["revenue20171017ml"]
+        condition = ["MID(InTimes,1,6)", "ComputeLantency", "IntervalNum", "MuUpper"]
+        tables = ["revenue20171023"]
         for table in tables:
             df = S.stats_revenue(table, condition, Reveune)
             IM = ImExport(S.db)
-            IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20171017/", "stats_day_" + Reveune + ".csv")
+            IM.save_df_csv(df, "/Users/songxue/Desktop/", "stats_" + table + ".csv")
 
 

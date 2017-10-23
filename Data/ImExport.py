@@ -4,7 +4,6 @@ from Utility.DB import DB
 from matplotlib import pyplot as plt
 import os
 import numpy as np
-import mysql.connector
 from sqlalchemy import create_engine
 
 
@@ -37,13 +36,11 @@ class ImExport:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
-    tablename = "tradeinfos20171017_pro"
-    path = "/home/emily/下载/"
-    filename = "history-profit.csv"
-    sql = "select Revenue_pro_model " \
-          "from revenue20171017ml where pro_model=1 "
-    df = pd.read_sql(sql, db.conn)
-    print df.describe()
+    tablename = "revenue20171023"
+    path = "/Users/songxue/Desktop/"
+    filename = "revenue20171023.csv"
+    sql = "select * from " + tablename
+    imex.mysqlToCSV(sql, 100000, path, filename)
 
 
 
