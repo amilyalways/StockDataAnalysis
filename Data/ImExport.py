@@ -36,11 +36,12 @@ class ImExport:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
-    tablename = "revenue20171023"
+    tablename = "tradeinfos20171101"
     path = "/Users/songxue/Desktop/"
-    filename = "revenue20171023.csv"
-    sql = "select * from " + tablename
-    imex.mysqlToCSV(sql, 100000, path, filename)
+    filename = "history-profit.csv"
+    df = pd.read_csv(path+filename)
+    print df
+    imex.save_df_mysql(df, tablename, False)
 
 
 

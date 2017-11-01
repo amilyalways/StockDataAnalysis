@@ -6,25 +6,10 @@ import pandas as pd
 import numpy as np
 
 
-
-
-#
 class StatsRevenue:
 
     def __init__(self):
         self.db = DB('localhost', 'stockresult', 'root', '0910@mysql')
-
-    def compute_revenue(self, x):
-        if x['isLong'] == 0:
-            return x['InLastPrice'] - x['OutLastPrice']
-        else:
-            return x['OutLastPrice'] - x['InLastPrice']
-
-    def compute_revenue_ML(self, x):
-        if (x['MyOutput1'] == 0 and x['isLong'] == 0) or (x['MyOutput1'] == 1 and x['isLong'] == 1) :
-            return x['OutLastPrice'] - x['InLastPrice']
-        else:
-            return x['InLastPrice'] - x['OutLastPrice']
 
     def save_revenue_mysql(self, imex, fromtable, chunksize, totable, filedlist, isML, MLtags):
 
@@ -56,6 +41,17 @@ class StatsRevenue:
 
 
             #print df3.ix[[1660,1661,1662], ['InTimes', 'OutTimes', 'InLastPrice','OutLastPrice','isLong', 'Revenue_pro_model', MLtags[0]]]
+            cols = list(df3)
+            new_cols = []
+            for col in cols[:-4]:
+                new_cols.append(col)
+                if col == "InTimes":
+                    new_cols.append("OutTimes")
+                elif col == "InLastPrice":
+                    new_cols.append("OutLastPrice")
+                    new_cols.append("Revenue")
+
+            df3 = df3[new_cols]
 
             imex.save_df_mysql(df3, totable, False)
             start += offset
@@ -100,14 +96,12 @@ class StatsRevenue:
 
 if __name__ == '__main__':
     S = StatsRevenue()
-
-
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
     MLtags = ['pro_model', 'acc_model', 'eff_model']
-    #S.save_revenue_mysql(imex, "20171019expect", 100000, "revenue20171023", "", False, MLtags)
+    S.save_revenue_mysql(imex, "tradeinfos20171101", 100000, "revenue20171101", "", False, MLtags)
 
-
+    '''
     Reveunes = ['Revenue']
     for Reveune in Reveunes:
         print Reveune
@@ -118,5 +112,5 @@ if __name__ == '__main__':
             df = S.stats_revenue(table, condition, Reveune)
             IM = ImExport(S.db)
             IM.save_df_csv(df, "/Users/songxue/Desktop/", "stats_" + table + ".csv")
-
+    '''
 
