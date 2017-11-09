@@ -7,6 +7,9 @@ def rewriteFile(path, filename, new_rows):
             id = 0
             for line in f_old.readlines():
                 if id in new_rows:
+                    print id
+                    print line
+                    print new_rows[id]
                     f_new.writelines(new_rows[id] + "\n")
                 else:
                     f_new.writelines(line)
@@ -23,4 +26,6 @@ if __name__ == '__main__':
     }
 
     for filename in arr_filename:
+        print filename
         rewriteFile(path, filename, new_rows)
+        print "********************************"

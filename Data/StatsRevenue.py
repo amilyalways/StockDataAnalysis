@@ -20,14 +20,14 @@ class StatsRevenue:
         while True:
             sql1 = "select * from " + fromtable + " where isOpen=1 limit " + str(start) + "," + str(start+offset)
             df1 = pd.read_sql(sql1, self.db.conn)
-            df1.rename(columns={'Times': 'InTimes', 'LastPrice': 'InLastPrice'}, inplace=True)
+            df1.rename(columns={'Times': 'InTimes', 'LastPrice': 'InLastPrice', 'Expected': 'InExpected', 'A': 'InA'}, inplace=True)
 
             sql2 = "select * from " + fromtable + " where isOpen=0 limit " + str(start) + "," + str(start+offset)
             df2 = pd.read_sql(sql2, self.db.conn)
-            df2.rename(columns={'Times': 'OutTimes', 'LastPrice': 'OutLastPrice'}, inplace=True)
+            df2.rename(columns={'Times': 'OutTimes', 'LastPrice': 'OutLastPrice', 'Expected': 'OutExpected', 'A': 'OutA'}, inplace=True)
 
 
-            df2 = df2.loc[:, ["OutTimes", "OutLastPrice","isOpen"]]
+            df2 = df2.loc[:, ["OutExpected", "OutA", "OutTimes", "OutLastPrice","isOpen"]]
             df3 = pd.concat([df1, df2], axis=1, join='inner')
 
 
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
     MLtags = ['pro_model', 'acc_model', 'eff_model']
-    #S.save_revenue_mysql(imex, "tradeinfos20171108_1", 100000, "revenue20171108_1", "", False, MLtags)
+    #S.save_revenue_mysql(imex, "tradeinfos20171109", 100000, "revenue20171109", "", False, MLtags)
 
 
 
@@ -107,8 +107,8 @@ if __name__ == '__main__':
     for Reveune in Reveunes:
         print Reveune
 
-        condition = ["MID(InTimes,1,6)", "ComputeLantency", "IntervalNum", "InMuUpper", "outMuUpper"]
-        tables = ["revenue20171108_1"]
+        condition = ["MID(InTimes,1,8)", "ComputeLantency", "IntervalNum", "MuUpper"]
+        tables = ["revenue20171109"]
         for table in tables:
             df = S.stats_revenue(table, condition, Reveune)
             IM = ImExport(S.db)
