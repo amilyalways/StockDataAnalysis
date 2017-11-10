@@ -154,7 +154,8 @@ class Visualization:
 
             return sample_times[self.long_to_time(L2)]['pos'], sample_times[self.long_to_time(L2)]['LastPrice']
 
-    def trade_trend(self, tablename1, tablename2, db, tag, day, start, end, sample, ComputeLantency, IntervalNum, MuUpper,lnPriceThreshold):
+    def trade_trend(self, tablename1, tablename2, db, tag, day, start, end, sample,
+                    ComputeLantency, IntervalNum, MuUpper):
         result1 = db.select(tablename1, "*", condition="times like '" + day + "%'")
         arr_y = []
         arr_x = []
@@ -162,7 +163,7 @@ class Visualization:
         count = 0
 
         condition = "times like '" + day + "%' and ComputeLantency=" + str(ComputeLantency)
-        condition += " and IntervalNum=" + str(IntervalNum) + " and InMuUpper=" + str(MuUpper)
+        condition += " and IntervalNum=" + str(IntervalNum) + " and MuUpper=" + str(MuUpper)
 
         result2 = db.select(tablename2, "*", condition=condition)
         if len(result2) > 0:
@@ -209,7 +210,7 @@ class Visualization:
                     break
                 x, y = self.find_nearest_time(re['Times'], sample, sample_time)
                 if re['isOpen'] == 1:
-                    if re[tag] == 1:
+                    if tag == 1:
                         if re['isLong'] == 1:
                             arr_point_in_long_x.append(x)
                             arr_point_in_long_y.append(y)
@@ -225,7 +226,7 @@ class Visualization:
                             arr_point_in_turn_long_y.append(y)
 
                 else:
-                    if re[tag] == 1:
+                    if tag == 1:
                         if re['isLong'] == 1:
                             arr_point_out_long_x.append(x)
                             arr_point_out_long_y.append(y)
@@ -261,8 +262,8 @@ class Visualization:
 
             S.legend(loc='upper right', prop={'size': 30})
 
-            path = "/home/emily/trade_trend/20171018/" + str(tag) + "/" + str(ComputeLantency) + "_" + str(
-                IntervalNum) + "_" + str(MuUpper) + "_" + str(lnPriceThreshold) + "/"
+            path = "/Users/songxue/Desktop/stock/trade_trend/20171109/" + str(ComputeLantency) + "_" + str(
+                IntervalNum) + "_" + str(MuUpper) + "_" + "/"
             if not os.path.exists(path):
                 os.makedirs(path)
             figname = title + ".png"
@@ -507,24 +508,26 @@ db = DB('localhost', 'stockresult','root','0910@mysql')
 #V.trend("data201308", "20130816", 150, 300, "trend20130816", "/home/emily/trade_trend/20171018/", config=config )
 
 
-table_list = ["tradeinfos20171017ml"]
+table_list = ["tradeinfos20171109"]
 
 for table in table_list:
     isLog = False
     day_list = []
-    sql = "SELECT distinct mid(Times,1,8) FROM "+ table + " where Times like '20130618%' or Times like '20130628%' "
+    sql = "SELECT distinct mid(Times,1,8) FROM "+ table
     db.cur.execute(sql)
     result = db.cur.fetchall()
     for re in result:
         day_list.append(re['mid(Times,1,8)'])
     print(day_list)
+    '''
     sql = "SELECT distinct InMuUpper, lnLastPriceThreshold  FROM " + table + " where ComputeLantency=6 and IntervalNum=6"
     db.cur.execute(sql)
     result = db.cur.fetchall()
+    '''
     hours = ["09:00:00 0", "09:30:00 0","10:00:00 0", "10:30:00 0", "11:00:00 0", "11:30:00 0",
              "13:00:00 0", "13:30:00 0", "14:00:00 0", "14:30:00 0", "15:00:00 0", "15:30:00 0"]
 
-    tags = ['pro_model', 'acc_model', 'eff_model']
+    tags = [1]
     for tag in tags:
         for re in result:
             for day in day_list:
@@ -534,8 +537,8 @@ for table in table_list:
                     else:
                         start = day + "-" + hours[h]
                         end = day + "-" + hours[h + 1]
-                        V.trade_trend("data201306", table, db, tag, day, start, end, 3, "6", "6",
-                                      re['InMuUpper'], re['lnLastPriceThreshold'])
+                        V.trade_trend("data201306", table, db, tag, day, start, end, 10, "20", "20",
+                                      "0.0001")
 
 
 #V.Distribution_Revenue(db, "revenue20170901", "Revenue_dist20170908.png", "/Users/songxue/Desktop/")

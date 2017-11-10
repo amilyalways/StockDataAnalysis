@@ -99,7 +99,7 @@ if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
     MLtags = ['pro_model', 'acc_model', 'eff_model']
-    #S.save_revenue_mysql(imex, "tradeinfos20171109", 100000, "revenue20171109", "", False, MLtags)
+    S.save_revenue_mysql(imex, "tradeinfos20171110", 100000, "revenue20171110", "", False, MLtags)
 
 
 
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         print Reveune
 
         condition = ["MID(InTimes,1,8)", "ComputeLantency", "IntervalNum", "MuUpper"]
-        tables = ["revenue20171109"]
+        tables = ["revenue20171110"]
         for table in tables:
             df = S.stats_revenue(table, condition, Reveune)
             IM = ImExport(S.db)
