@@ -25,17 +25,17 @@ print x
 '''
 
 db = DB('localhost', 'stockresult', 'root', '0910@mysql')
-sql = "select InA FROM revenue20171109"
+sql = "select InA FROM revenue20171117_fixedA"
 df = pd.read_sql(sql, db.conn)
 print df.describe()
 
 InAs = ["0.0017153", "0.00171845", "0.00171852", "0.00171855", "0.00171958"]
-sql = "select Revenue FROM revenue20171109"
+sql = "select Revenue FROM revenue20171117_fixedA"
 df = pd.read_sql(sql, db.conn)
 df1 = df.describe()
 
 for InA in InAs:
-    sql = "select Revenue FROM revenue20171110 where InA=" + InA
+    sql = "select Revenue FROM revenue20171117_fixedA where InA=" + InA
     df2 = pd.read_sql(sql, db.conn).describe()
     df2.rename(columns={'Revenue': InA}, inplace=True)
 
