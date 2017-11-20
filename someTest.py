@@ -25,12 +25,12 @@ print x
 '''
 
 db = DB('localhost', 'stockresult', 'root', '0910@mysql')
-sql = "select InA FROM revenue20171117_fixedA"
+sql = "select InA FROM revenue20171120_varyA"
 df = pd.read_sql(sql, db.conn)
 print df.describe()
 
 InAs = ["0.0017153", "0.00171845", "0.00171852", "0.00171855", "0.00171958"]
-sql = "select Revenue FROM revenue20171117_fixedA"
+sql = "select Revenue FROM revenue20171120_varyA"
 df = pd.read_sql(sql, db.conn)
 df1 = df.describe()
 
