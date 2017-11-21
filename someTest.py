@@ -23,6 +23,10 @@ print w.days, w.seconds, w.microseconds
 x = pd.date_range( end="2018-01-29", periods=10, freq="BM")
 print x
 '''
+db = DB('localhost', 'stockresult', 'root', '0910@mysql')
+sql = "select A FROM 20171120expectaandaa where A>3.469610e-308"
+df = pd.read_sql(sql, db.conn)
+print df.describe()
 
 db = DB('localhost', 'stockresult', 'root', '0910@mysql')
 sql = "select InA FROM revenue20171120_varyA"
@@ -35,7 +39,7 @@ df = pd.read_sql(sql, db.conn)
 df1 = df.describe()
 
 for InA in InAs:
-    sql = "select Revenue FROM revenue20171117_fixedA where InA=" + InA
+    sql = "select Revenue FROM revenue20171121_fixedA where InA=" + InA
     df2 = pd.read_sql(sql, db.conn).describe()
     df2.rename(columns={'Revenue': InA}, inplace=True)
 

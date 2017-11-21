@@ -99,7 +99,7 @@ if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
     MLtags = ['pro_model', 'acc_model', 'eff_model']
-    S.save_revenue_mysql(imex, "tradeinfos20171120_varyA", 100000, "revenue20171120_varyA", "", False, MLtags)
+    S.save_revenue_mysql(imex, "tradeinfos20171121_fixedA", 100000, "revenue20171121_fixedA", "", False, MLtags)
 
 
     '''
