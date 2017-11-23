@@ -2,6 +2,7 @@
 
 from Utility.DB import DB
 from ImExport import ImExport
+from Utility.TimeTransfer import TimeTransfer
 import pandas as pd
 import numpy as np
 
@@ -94,12 +95,85 @@ class StatsRevenue:
 
         return df
 
+    #统计在亏损的交易中，最大的可能盈利值
+    def stats_maxWin(self, trade_table, trend_table, to_table):
+        sql1 = " select * from " + trade_table
+        df1 = pd.read_sql(sql1, self.db.conn)
+
+        tt = TimeTransfer()
+
+        l = len(df1)
+        print l
+
+        for i in range(0, l):
+            start = tt.time_to_long(df1.loc[i, "InTimes"])
+            end = tt.time_to_long(df1.loc[i, "OutTimes"])
+
+            isLong = df1.loc[i, "isLong"]
+
+            if isLong:
+                content = "desc"
+            else:
+                content = ""
+
+            sql2 = " select * from " + trend_table \
+                   + " where L_time>" + str(start) + " and L_time<" + str(end) \
+                   + " order by LastPrice " + content + ",L_time limit 1"
+            df2 = pd.read_sql(sql2, self.db.conn)
+            if(i == 0):
+                df3 = df2
+            else:
+                df3 = pd.concat([df3, df2])
+
+
+        df3 = df3.loc[:, ["Times", "LastPrice"]]
+        df3['id'] = [x for x in range(0, len(df3))]
+        df3 = df3.set_index('id')
+
+        df4 = pd.concat([df1, df3], axis=1, join_axes=[df1.index])
+        df4.rename(columns={'Times': 'MiddleTimes', 'LastPrice': 'MiddleLastPrice'}, inplace=True)
+
+
+        df4['MiddleRevenue'] = map(lambda x, y, z: y - z if x > 0
+        else z - y, df4['isLong'], df4['MiddleLastPrice'], df4['InLastPrice'])
+
+
+        cols = list(df4)
+        new_cols = []
+        for col in cols[:-2]:
+            new_cols.append(col)
+            if col == "InTimes":
+                new_cols.append("MiddleTimes")
+            elif col == "InLastPrice":
+                new_cols.append("MiddleLastPrice")
+            elif col == "OutLastPrice":
+                new_cols.append("MiddleRevenue")
+
+        df4 = df4[new_cols]
+        print df4
+
+        imex.save_df_mysql(df4, to_table, False)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     S = StatsRevenue()
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
     MLtags = ['pro_model', 'acc_model', 'eff_model']
-    S.save_revenue_mysql(imex, "tradeinfos20171121_fixedA", 100000, "revenue20171121_fixedA", "", False, MLtags)
+    S.stats_maxWin("revenue20171120_varyA", "data201306","stats20171120_varyA")
+    #S.save_revenue_mysql(imex, "tradeinfos20171122_fixedA", 100000, "revenue20171122_fixedA", "", False, MLtags)
 
 
     '''
