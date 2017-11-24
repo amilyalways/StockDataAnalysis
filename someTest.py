@@ -36,8 +36,7 @@ InAs = ["0.0017153", "0.00171845", "0.00171852", "0.00171855", "0.00171958"]
 sql = "select Revenue FROM revenue20171120_varyA"
 df = pd.read_sql(sql, db.conn)
 df1 = df.describe()
-df.plot()
-plt.show()
+
 
 for InA in InAs:
     sql = "select Revenue FROM revenue20171121_fixedA where InA=" + InA
@@ -47,5 +46,10 @@ for InA in InAs:
     df1 = pd.concat([df1, df2], axis=1)
 print df1
 
+sql3 = "select HoldTime, Time1 from stats20171120_varyA where HoldTime<500 and Revenue<0 and MiddleRevenue>0"
+df3 = pd.read_sql(sql3, db.conn)
 
+print df3.describe()
+df3.plot()
+plt.show()
 

@@ -117,7 +117,7 @@ class StatsRevenue:
                 content = ""
 
             sql2 = " select * from " + trend_table \
-                   + " where L_time>" + str(start) + " and L_time<" + str(end) \
+                   + " where L_time>" + str(start) + " and L_time<=" + str(end) \
                    + " order by LastPrice " + content + ",L_time limit 1"
             df2 = pd.read_sql(sql2, self.db.conn)
             if(i == 0):
@@ -137,31 +137,93 @@ class StatsRevenue:
         df4['MiddleRevenue'] = map(lambda x, y, z: y - z if x > 0
         else z - y, df4['isLong'], df4['MiddleLastPrice'], df4['InLastPrice'])
 
+        df4['HoldTime'] = map(lambda x, y: tt.time_to_long(x) - tt.time_to_long(y),
+                              df4['OutTimes'], df4['InTimes'])
+        df4['Time1'] = map(lambda x, y: tt.time_to_long(x) - tt.time_to_long(y),
+                              df4['MiddleTimes'], df4['InTimes'])
+        df4['Time2'] = map(lambda x, y: tt.time_to_long(x) - tt.time_to_long(y),
+                           df4['OutTimes'], df4['MiddleTimes'])
+
+
 
         cols = list(df4)
         new_cols = []
-        for col in cols[:-2]:
+        for col in cols[:-5]:
             new_cols.append(col)
             if col == "InTimes":
                 new_cols.append("MiddleTimes")
+            elif col == "OutTimes":
+                new_cols.append("HoldTime")
+                new_cols.append("Time1")
+                new_cols.append("Time2")
             elif col == "InLastPrice":
                 new_cols.append("MiddleLastPrice")
             elif col == "OutLastPrice":
                 new_cols.append("MiddleRevenue")
+
 
         df4 = df4[new_cols]
         print df4
 
         imex.save_df_mysql(df4, to_table, False)
 
+    #查看数据分布情况
+    def distribution(self, sql, isPrint, isSave, imex, path, filename):
+        df = pd.read_sql(sql, self.db.conn)
+        df1 = df.describe()
+        if isPrint:
+            print df1
 
+        if isSave:
+            imex.save_df_csv(df1, path, filename)
+        return df
 
+    #可视化数据分布情况
+    def visualization(self, df, plt, kind, isShow, isSave, title, xlabel, ylabel,
+                      path, figname, **config):
+        df.plot(kind=kind)
 
+        if isShow:
+            plt.show()
 
+        if isSave:
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.title(title)
+            plt.savefig(path + figname, **config)
 
+    #关于最优平仓时间相关的利润和持仓时间上的统计和可视化
+    def bestMiddleTimeRevenue(self, tablename, imex, path, filenames):
 
+        contents = [["Revenue", "MiddleRevenue"], ["HoldTime", "Time1"]]
+        j = 0
+        for content in contents:
+            sql1 = "select " + content[0] + "," + content[1] + " from " + tablename
+            sql2 = sql1 + " where Revenue<=0 and MiddleRevenue>0"
+            sql3 = sql1 + " where Revenue>0 and MiddleRevenue>0"
+            sqls = [sql1, sql2, sql3]
+            renames = [
+                {
+                    content[0]: "L" + content[0],
+                    content[1]: "L" + content[1],
+                },
+                {
+                    content[0]: "W" + content[0],
+                    content[1]: "W" + content[1],
+                }
+            ]
 
+            dfRevenue = []
+            for i in range(0, 3):
+                df0 = pd.read_sql(sqls[i], self.db.conn).describe()
+                if i > 0:
+                    df0.rename(columns=renames[i - 1], inplace=True)
+                dfRevenue.append(df0)
+            df = pd.concat(dfRevenue, axis=1)
 
+            print df
+            imex.save_df_csv(df, path, filenames[j])
+            j += 1
 
 
 
@@ -172,7 +234,9 @@ if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
     MLtags = ['pro_model', 'acc_model', 'eff_model']
-    S.stats_maxWin("revenue20171120_varyA", "data201306","stats20171120_varyA")
+    filenames = ["statsRevenue.csv", "statsHoldTime.csv"]
+    S.bestMiddleTimeRevenue("stats20171120_varyA", imex, "/home/emily/桌面/stockResult/stats20171124/", filenames)
+    #S.stats_maxWin("revenue20171120_varyA", "data201306","stats20171120_varyA")
     #S.save_revenue_mysql(imex, "tradeinfos20171122_fixedA", 100000, "revenue20171122_fixedA", "", False, MLtags)
 
 
