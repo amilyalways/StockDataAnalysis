@@ -5,6 +5,7 @@ from ImExport import ImExport
 from Utility.TimeTransfer import TimeTransfer
 import pandas as pd
 import numpy as np
+from matplotlib import pyplot as plt
 
 
 class StatsRevenue:
@@ -181,7 +182,7 @@ class StatsRevenue:
     #可视化数据分布情况
     def visualization(self, df, plt, kind, isShow, isSave, title, xlabel, ylabel,
                       path, figname, **config):
-        df.plot(kind=kind)
+        df.plot(kind=kind, figsize=(60, 35), linewidth=5)
 
         if isShow:
             plt.show()
@@ -189,11 +190,14 @@ class StatsRevenue:
         if isSave:
             plt.xlabel(xlabel)
             plt.ylabel(ylabel)
-            plt.title(title)
+            plt.title(title, fontsize=60)
+            plt.xticks(fontsize=45)
+            plt.yticks(fontsize=45)
+
             plt.savefig(path + figname, **config)
 
     #关于最优平仓时间相关的利润和持仓时间上的统计和可视化
-    def bestMiddleTimeRevenue(self, tablename, imex, path, filenames):
+    def bestMiddleTimeRevenue(self, tablename, imex, path, filenames, plt, kind, titles):
 
         contents = [["Revenue", "MiddleRevenue"], ["HoldTime", "Time1"]]
         j = 0
@@ -215,18 +219,20 @@ class StatsRevenue:
 
             dfRevenue = []
             for i in range(0, 3):
-                df0 = pd.read_sql(sqls[i], self.db.conn).describe()
+                df0 = pd.read_sql(sqls[i], self.db.conn)
+                title = titles[j] + "_" + str(i)
+                figname = title + ".png"
+                self.visualization(df0, plt, kind, False, True, title, "", "", path, figname)
+                df0["diff" + str(i)] = df0[content[1]] - df0[content[0]]
+                df1 = df0.describe()
                 if i > 0:
-                    df0.rename(columns=renames[i - 1], inplace=True)
-                dfRevenue.append(df0)
+                    df1.rename(columns=renames[i - 1], inplace=True)
+                dfRevenue.append(df1)
             df = pd.concat(dfRevenue, axis=1)
 
             print df
             imex.save_df_csv(df, path, filenames[j])
             j += 1
-
-
-
 
 
 if __name__ == '__main__':
@@ -235,7 +241,9 @@ if __name__ == '__main__':
     imex = ImExport(db)
     MLtags = ['pro_model', 'acc_model', 'eff_model']
     filenames = ["statsRevenue.csv", "statsHoldTime.csv"]
-    S.bestMiddleTimeRevenue("stats20171120_varyA", imex, "/home/emily/桌面/stockResult/stats20171124/", filenames)
+    titles = ["Revenue", "Time"]
+    S.bestMiddleTimeRevenue("stats20171120_varyA", imex, "/home/emily/桌面/stockResult/stats20171124/",
+                            filenames, plt, "line", titles)
     #S.stats_maxWin("revenue20171120_varyA", "data201306","stats20171120_varyA")
     #S.save_revenue_mysql(imex, "tradeinfos20171122_fixedA", 100000, "revenue20171122_fixedA", "", False, MLtags)
 
