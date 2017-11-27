@@ -41,7 +41,7 @@ df1 = df.describe()
 
 
 for InA in InAs:
-    sql = "select Revenue FROM revenue20171127_fixedA where InA=" + InA
+    sql = "select Revenue FROM revenue20171127_fixedA_allParas where InA=" + InA
     df2 = pd.read_sql(sql, db.conn).describe()
     df2.rename(columns={'Revenue': InA}, inplace=True)
 

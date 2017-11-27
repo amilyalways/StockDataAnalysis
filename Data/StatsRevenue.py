@@ -16,21 +16,23 @@ class StatsRevenue:
     def save_revenue_mysql(self, imex, fromtable, chunksize, totable, filedlist, isML, MLtags):
 
         trade_num = self.db.select(fromtable, "count(*)")[0]['count(*)'] / 2
+        print "tradenum: " + str(trade_num)
         start = 0
-        offset = 100000
+        offset = 10000000
 
         while True:
             sql1 = "select * from " + fromtable + " where isOpen=1 limit " + str(start) + "," + str(start+offset)
             df1 = pd.read_sql(sql1, self.db.conn)
             df1.rename(columns={'Times': 'InTimes', 'LastPrice': 'InLastPrice', 'Expected': 'InExpected', 'A': 'InA'}, inplace=True)
-
+            print "df1 len: " + str(len(df1)) #注意如果再次进入这个循环,df1没有被覆盖,而是叠加在原来的结果上了...
             sql2 = "select * from " + fromtable + " where isOpen=0 limit " + str(start) + "," + str(start+offset)
             df2 = pd.read_sql(sql2, self.db.conn)
             df2.rename(columns={'Times': 'OutTimes', 'LastPrice': 'OutLastPrice', 'Expected': 'OutExpected', 'A': 'OutA'}, inplace=True)
-
+            print "df2 len: " + str(len(df2))
 
             df2 = df2.loc[:, ["OutExpected", "OutA", "OutTimes", "OutLastPrice","isOpen"]]
             df3 = pd.concat([df1, df2], axis=1, join='inner')
+            print "df3 len: " + str(len(df3))
 
 
             if isML:
@@ -56,6 +58,7 @@ class StatsRevenue:
             df3 = df3[new_cols]
 
             imex.save_df_mysql(df3, totable, False)
+            print start
             start += offset
             if start > trade_num:
                 break
