@@ -242,10 +242,10 @@ if __name__ == '__main__':
     MLtags = ['pro_model', 'acc_model', 'eff_model']
     filenames = ["statsRevenue.csv", "statsHoldTime.csv"]
     titles = ["Revenue", "Time"]
-    S.bestMiddleTimeRevenue("stats20171120_varyA", imex, "/home/emily/桌面/stockResult/stats20171124/",
-                            filenames, plt, "line", titles)
+    #S.bestMiddleTimeRevenue("stats20171120_varyA", imex, "/home/emily/桌面/stockResult/stats20171124/",
+    #                        filenames, plt, "line", titles)
     #S.stats_maxWin("revenue20171120_varyA", "data201306","stats20171120_varyA")
-    #S.save_revenue_mysql(imex, "tradeinfos20171122_fixedA", 100000, "revenue20171122_fixedA", "", False, MLtags)
+    S.save_revenue_mysql(imex, "tradeinfos20171127_fixedA_allParas", 100000, "revenue20171127_fixedA_allParas", "", False, MLtags)
 
 
     '''

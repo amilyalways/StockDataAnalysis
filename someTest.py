@@ -26,30 +26,27 @@ print x
 
 
 db = DB('localhost', 'stockresult', 'root', '0910@mysql')
-sql = "select InA FROM revenue20171120_varyA"
+sql = "select InA FROM revenue20171127_varyA"
 df = pd.read_sql(sql, db.conn)
 print df.describe()
 
-InAs = ["0.0017153", "0.00171845", "0.00171852", "0.00171855", "0.00171958"]
+#InAs = ["0.0017153", "0.00171845", "0.00171852", "0.00171855", "0.00171958"]
 '''InAs = ["0.0017", "0.001725", "0.0018"]'''
+InAs = ["0.0017", "0.0017153", "0.00171845", "0.00171852", "0.00171855",
+        "0.00171958", "0.001725", "0.0018", "0.002", "0.003"]
 
-sql = "select Revenue FROM revenue20171120_varyA"
+sql = "select Revenue FROM revenue20171127_varyA"
 df = pd.read_sql(sql, db.conn)
 df1 = df.describe()
 
 
 for InA in InAs:
-    sql = "select Revenue FROM revenue20171121_fixedA where InA=" + InA
+    sql = "select Revenue FROM revenue20171127_fixedA where InA=" + InA
     df2 = pd.read_sql(sql, db.conn).describe()
     df2.rename(columns={'Revenue': InA}, inplace=True)
 
     df1 = pd.concat([df1, df2], axis=1)
 print df1
 
-sql3 = "select HoldTime, Time1 from stats20171120_varyA where HoldTime<500 and Revenue<0 and MiddleRevenue>0"
-df3 = pd.read_sql(sql3, db.conn)
 
-print df3.describe()
-df3.plot()
-plt.show()
 
