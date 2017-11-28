@@ -100,7 +100,7 @@ class StatsRevenue:
         return df
 
     #统计在亏损的交易中，最大的可能盈利值
-    def stats_maxWin(self, trade_table, trend_table, to_table):
+    def stats_maxWin(self, trade_table, to_table):
         sql1 = " select * from " + trade_table
         df1 = pd.read_sql(sql1, self.db.conn)
 
@@ -110,8 +110,12 @@ class StatsRevenue:
         print l
 
         for i in range(0, l):
+
             start = tt.time_to_long(df1.loc[i, "InTimes"])
             end = tt.time_to_long(df1.loc[i, "OutTimes"])
+            trend_table = "Ldata" + df1.loc[i, "InTimes"][:6]
+            print i
+            print trend_table
 
             isLong = df1.loc[i, "isLong"]
 
@@ -130,9 +134,10 @@ class StatsRevenue:
                 df3 = pd.concat([df3, df2])
 
 
-        df3 = df3.loc[:, ["Times", "LastPrice"]]
+        #df3 = df3.loc[:, ["Times", "LastPrice"]]
         df3['id'] = [x for x in range(0, len(df3))]
         df3 = df3.set_index('id')
+        print
 
         df4 = pd.concat([df1, df3], axis=1, join_axes=[df1.index])
         df4.rename(columns={'Times': 'MiddleTimes', 'LastPrice': 'MiddleLastPrice'}, inplace=True)
@@ -143,23 +148,20 @@ class StatsRevenue:
 
         df4['HoldTime'] = map(lambda x, y: tt.time_to_long(x) - tt.time_to_long(y),
                               df4['OutTimes'], df4['InTimes'])
-        df4['Time1'] = map(lambda x, y: tt.time_to_long(x) - tt.time_to_long(y),
-                              df4['MiddleTimes'], df4['InTimes'])
-        df4['Time2'] = map(lambda x, y: tt.time_to_long(x) - tt.time_to_long(y),
-                           df4['OutTimes'], df4['MiddleTimes'])
 
 
+        df4['LTime1'] = map(lambda x: tt.time_to_long(x), df4['InTimes'])
+        df4['Time1'] = df4['L_time'] - df4['LTime1']
 
         cols = list(df4)
         new_cols = []
-        for col in cols[:-5]:
+        for col in cols[:-7]:
             new_cols.append(col)
             if col == "InTimes":
                 new_cols.append("MiddleTimes")
             elif col == "OutTimes":
                 new_cols.append("HoldTime")
                 new_cols.append("Time1")
-                new_cols.append("Time2")
             elif col == "InLastPrice":
                 new_cols.append("MiddleLastPrice")
             elif col == "OutLastPrice":
@@ -169,7 +171,7 @@ class StatsRevenue:
         df4 = df4[new_cols]
         print df4
 
-        imex.save_df_mysql(df4, to_table, False)
+        #imex.save_df_mysql(df4, to_table, False)
 
     #查看数据分布情况
     def distribution(self, sql, isPrint, isSave, imex, path, filename):
@@ -245,10 +247,10 @@ if __name__ == '__main__':
     MLtags = ['pro_model', 'acc_model', 'eff_model']
     filenames = ["statsRevenue.csv", "statsHoldTime.csv"]
     titles = ["Revenue", "Time"]
-    #S.bestMiddleTimeRevenue("stats20171120_varyA", imex, "/home/emily/桌面/stockResult/stats20171124/",
-    #                        filenames, plt, "line", titles)
-    #S.stats_maxWin("revenue20171120_varyA", "data201306","stats20171120_varyA")
-    S.save_revenue_mysql(imex, "tradeinfos20171127_fixedA_allParas", 100000, "revenue20171127_fixedA_allParas", "", False, MLtags)
+    #S.bestMiddleTimeRevenue("stats20171127_varyA", imex, "/home/emily/桌面/stockResult/stats20171128/",
+    #                     filenames, plt, "line", titles)
+    S.stats_maxWin("revenue20171127_varyA", "stats20171127_varyA")
+    #S.save_revenue_mysql(imex, "tradeinfos20171127_fixedA_allParas", 100000, "revenue20171127_fixedA_allParas", "", False, MLtags)
 
 
     '''

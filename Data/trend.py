@@ -1,14 +1,19 @@
 import pandas as pd
 from Utility.DB import DB
 import numpy as np
+from Utility.TimeTransfer import TimeTransfer
+from Data.ImExport import ImExport
 
 db = DB('localhost', 'stockresult', 'root', '0910@mysql')
-for j in range(3, 10):
-    table = "data20130" + str(j)
+tt = TimeTransfer()
+imex = ImExport(db)
+for j in range(0, 3):
+    table = "data20131" + str(j)
     print "------------" + table + "--------------------"
 
     sql = "select * from " + table
     df = pd.read_sql(sql, db.conn)
+    '''
     record_num = db.select(table, "count(*)")[0]['count(*)']
     print record_num
     intervalNum = 6
@@ -26,6 +31,11 @@ for j in range(3, 10):
         print "95%: ", df1['abs_diff'].quantile(0.95)
         print "98%: ", df1['abs_diff'].quantile(0.98)
         print "99%: ", df1['abs_diff'].quantile(0.99)
+    '''
+
+    df['L_time'] = map(lambda x: tt.time_to_long(x), df["Times"])
+    imex.save_df_mysql(df, "L"+table, False)
+
 
 
 
