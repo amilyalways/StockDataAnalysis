@@ -137,7 +137,7 @@ class StatsRevenue:
         #df3 = df3.loc[:, ["Times", "LastPrice"]]
         df3['id'] = [x for x in range(0, len(df3))]
         df3 = df3.set_index('id')
-        print
+
 
         df4 = pd.concat([df1, df3], axis=1, join_axes=[df1.index])
         df4.rename(columns={'Times': 'MiddleTimes', 'LastPrice': 'MiddleLastPrice'}, inplace=True)
@@ -171,7 +171,7 @@ class StatsRevenue:
         df4 = df4[new_cols]
         print df4
 
-        #imex.save_df_mysql(df4, to_table, False)
+        imex.save_df_mysql(df4, to_table, False)
 
     #查看数据分布情况
     def distribution(self, sql, isPrint, isSave, imex, path, filename):
@@ -207,9 +207,9 @@ class StatsRevenue:
         contents = [["Revenue", "MiddleRevenue"], ["HoldTime", "Time1"]]
         j = 0
         for content in contents:
-            sql1 = "select " + content[0] + "," + content[1] + " from " + tablename
-            sql2 = sql1 + " where Revenue<=0 and MiddleRevenue>0"
-            sql3 = sql1 + " where Revenue>0 and MiddleRevenue>0"
+            sql1 = "select " + content[0] + "," + content[1] + " from " + tablename + " where HoldTime<2000 "
+            sql2 = sql1 + " and Revenue<=0 and MiddleRevenue>0"
+            sql3 = sql1 + " and Revenue>0 and MiddleRevenue>0"
             sqls = [sql1, sql2, sql3]
             renames = [
                 {
@@ -247,9 +247,9 @@ if __name__ == '__main__':
     MLtags = ['pro_model', 'acc_model', 'eff_model']
     filenames = ["statsRevenue.csv", "statsHoldTime.csv"]
     titles = ["Revenue", "Time"]
-    #S.bestMiddleTimeRevenue("stats20171127_varyA", imex, "/home/emily/桌面/stockResult/stats20171128/",
-    #                     filenames, plt, "line", titles)
-    S.stats_maxWin("revenue20171127_varyA", "stats20171127_varyA")
+    S.bestMiddleTimeRevenue("stats20171127_varyA", imex, "/home/emily/桌面/stockResult/stats20171129/normal/",
+                        filenames, plt, "line", titles)
+    #S.stats_maxWin("revenue20171127_varyA", "stats20171127_varyA")
     #S.save_revenue_mysql(imex, "tradeinfos20171127_fixedA_allParas", 100000, "revenue20171127_fixedA_allParas", "", False, MLtags)
 
 
