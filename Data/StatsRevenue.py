@@ -27,10 +27,10 @@ class StatsRevenue:
             print "df1 len: " + str(len(df1)) #注意如果再次进入这个循环,df1没有被覆盖,而是叠加在原来的结果上了...
             sql2 = "select * from " + fromtable + " where isOpen=0 limit " + str(start) + "," + str(start+offset)
             df2 = pd.read_sql(sql2, self.db.conn)
-            df2.rename(columns={'Times': 'OutTimes', 'LastPrice': 'OutLastPrice', 'Expected': 'OutExpected', 'A': 'OutA'}, inplace=True)
+            df2.rename(columns={'Times': 'OutTimes', 'LastPrice': 'OutLastPrice', 'Expected': 'OutExpected', 'A': 'OutA', 'isMaxtime': 'outIsMaxTime'}, inplace=True)
             print "df2 len: " + str(len(df2))
 
-            df2 = df2.loc[:, ["OutExpected", "OutA", "OutTimes", "OutLastPrice","isOpen"]]
+            df2 = df2.loc[:, ["OutExpected", "OutA", "OutTimes", "OutLastPrice", "isOpen", "outIsMaxTime"]]
             df3 = pd.concat([df1, df2], axis=1, join='inner')
             print "df3 len: " + str(len(df3))
 
@@ -47,13 +47,15 @@ class StatsRevenue:
             #print df3.ix[[1660,1661,1662], ['InTimes', 'OutTimes', 'InLastPrice','OutLastPrice','isLong', 'Revenue_pro_model', MLtags[0]]]
             cols = list(df3)
             new_cols = []
-            for col in cols[:-4]:
+            for col in cols[:-5]:
                 new_cols.append(col)
                 if col == "InTimes":
                     new_cols.append("OutTimes")
                 elif col == "InLastPrice":
                     new_cols.append("OutLastPrice")
                     new_cols.append("Revenue")
+                    new_cols.append("outIsMaxTime")
+
 
             df3 = df3[new_cols]
 
@@ -247,10 +249,10 @@ if __name__ == '__main__':
     MLtags = ['pro_model', 'acc_model', 'eff_model']
     filenames = ["statsRevenue.csv", "statsHoldTime.csv"]
     titles = ["Revenue", "Time"]
-    S.bestMiddleTimeRevenue("stats20171127_varyA", imex, "/home/emily/桌面/stockResult/stats20171129/normal/",
-                        filenames, plt, "line", titles)
-    #S.stats_maxWin("revenue20171127_varyA", "stats20171127_varyA")
-    #S.save_revenue_mysql(imex, "tradeinfos20171127_fixedA_allParas", 100000, "revenue20171127_fixedA_allParas", "", False, MLtags)
+    #S.bestMiddleTimeRevenue("stats20171127_varyA", imex, "/home/emily/桌面/stockResult/stats20171129/normal/",
+     #                   filenames, plt, "line", titles)
+    S.stats_maxWin("revenue20171201_maxHoldTime_20", "stats20171201_maxHoldTime_20")
+    #S.save_revenue_mysql(imex, "tradeinfos20171201_maxHoldTime_20", 100000, "revenue20171201_maxHoldTime_20", "", False, MLtags)
 
 
     '''
@@ -258,11 +260,11 @@ if __name__ == '__main__':
     for Reveune in Reveunes:
         print Reveune
 
-        condition = ["MID(InTimes,1,8)", "ComputeLantency", "IntervalNum", "MuUpper"]
-        tables = ["revenue20171109"]
+        condition = ["ComputeLantency", "IntervalNum", "MuUpper", "InA"]
+        tables = ["revenue20171201_fixedA"]
         for table in tables:
             df = S.stats_revenue(table, condition, Reveune)
             IM = ImExport(S.db)
-            IM.save_df_csv(df, "/Users/songxue/Desktop/", "stats_" + table + ".csv")
-    '''
+            IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20171201/", "stats_" + table + ".csv")
 
+    '''
