@@ -1,8 +1,12 @@
+# -*- coding: utf-8 -*-
+
 from datetime import datetime
 from dateutil.parser import parse
 import pandas as pd
 from Utility.DB import DB
 from matplotlib import pyplot as plt
+from Utility.TimeTransfer import TimeTransfer
+from Data.ImExport import ImExport
 
 '''
 stamp = datetime(2017,9,20,9,21,10, 5)
@@ -26,12 +30,14 @@ print x
 
 
 db = DB('localhost', 'stockresult', 'root', '0910@mysql')
+
+'''
 sql = "select InA FROM revenue20171127_varyA"
 df = pd.read_sql(sql, db.conn)
 print df.describe()
 
 #InAs = ["0.0017153", "0.00171845", "0.00171852", "0.00171855", "0.00171958"]
-'''InAs = ["0.0017", "0.001725", "0.0018"]'''
+#InAs = ["0.0017", "0.001725", "0.0018"]
 InAs = ["0.0017", "0.0017153", "0.00171845", "0.00171852", "0.00171855",
         "0.00171958", "0.001725", "0.0018", "0.002", "0.003"]
 
@@ -47,6 +53,30 @@ for InA in InAs:
 
     df1 = pd.concat([df1, df2], axis=1)
 print df1
+'''
 
+'''
+sql3 = "select InTimes, HoldTime from stats20171120_varyA"
+df3 = pd.read_sql(sql3, db.conn)
 
+tt = TimeTransfer()
+df3['LInTime'] = map(lambda x: tt.time_to_long(x), df3["InTimes"])
 
+df3['diff'] = pd.rolling_apply(df3['LInTime'], 2, lambda x: x[1]-x[0])
+
+imex= ImExport(db)
+print df3
+#imex.save_df_csv(df3, "/home/emily/桌面/", "diffTime.csv")
+df4 = pd.read_csv("/home/emily/桌面/diffTime.csv")
+df5 = df4[df4.IntervalTime < 5000]['IntervalTime']
+print df5.describe(percentiles=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98])
+'''
+
+sql = "SELECT Revenue, MRevenue, MiddleRevenue " \
+      "FROM stats20171204_maxHoldTimeNo_50 where isMaxHoldTime=1 and MRevenue<Revenue and MRevenue>-2000"
+df = pd.read_sql(sql, db.conn)
+print df.describe(percentiles=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98])
+sql1 = "SELECT Revenue, MRevenue, MiddleRevenue " \
+      "FROM stats20171204_maxHoldTimeNo_50 where isMaxHoldTime=1 and MRevenue>Revenue and MRevenue>-2000"
+df1 = pd.read_sql(sql1, db.conn)
+print df1.describe(percentiles=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98])

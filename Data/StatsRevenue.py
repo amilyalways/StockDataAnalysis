@@ -241,6 +241,61 @@ class StatsRevenue:
             imex.save_df_csv(df, path, filenames[j])
             j += 1
 
+    def seekLastPrice(self, tablename, Ltime):
+        sql = "select * from " + tablename + " where L_time=" + str(Ltime)
+        df1 = pd.read_sql(sql, self.db.conn)
+        if len(df1) > 0:
+            print df1.loc[0, "Times"]
+
+            return df1.loc[0, "LastPrice"]
+        else:
+            print "Middle Rest"
+            return 0
+
+
+
+    def maxHoldTime(self, tradeTable, imex):
+        sql = "select * from " + tradeTable + " limit 1820"
+        df1 = pd.read_sql(sql, self.db.conn)
+
+        tt = TimeTransfer()
+        maxHoldTimes = [40]
+
+        for maxHoldTime in maxHoldTimes:
+            df1['maxHoldTime'] = maxHoldTime
+            df1['isMaxHoldTime'] = map(lambda x: 1 if x > maxHoldTime else 0, df1['HoldTime'])
+
+            df1['LMInTimes'] = map(lambda x: tt.time_to_long(x)+maxHoldTime, df1["InTimes"])
+            df1['LMLastPrice'] = map(lambda x: self.seekLastPrice("Ldata201306", x), df1['LMInTimes'])
+            df1['MRevenue'] = map(lambda x, y, z: y - z if x > 0
+                else z - y, df1['isLong'], df1['LMLastPrice'], df1['InLastPrice'])
+
+            df1['MRevenue'] = map(lambda x, y, z: z if x > maxHoldTime else y, df1['HoldTime'], df1['Revenue'], df1['MRevenue'])
+
+
+            print df1
+
+            cols = list(df1)
+            new_cols = []
+            for col in cols:
+                new_cols.append(col)
+                if col == "Revenue":
+                    new_cols.append("MRevenue")
+                elif col == "OutLastPrice":
+                    new_cols.append("LMLastPrice")
+            df1 = df1[new_cols]
+
+            imex.save_df_mysql(df1, "stats20171204_maxHoldTimeNo_40", False)
+
+
+
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     S = StatsRevenue()
@@ -251,9 +306,16 @@ if __name__ == '__main__':
     titles = ["Revenue", "Time"]
     #S.bestMiddleTimeRevenue("stats20171127_varyA", imex, "/home/emily/桌面/stockResult/stats20171129/normal/",
      #                   filenames, plt, "line", titles)
-    S.stats_maxWin("revenue20171201_maxHoldTime_20", "stats20171201_maxHoldTime_20")
+    #S.stats_maxWin("revenue20171201_maxHoldTime_20", "stats20171201_maxHoldTime_20")
     #S.save_revenue_mysql(imex, "tradeinfos20171201_maxHoldTime_20", 100000, "revenue20171201_maxHoldTime_20", "", False, MLtags)
 
+    #S.maxHoldTime("stats20171120_varyA", imex)
+    #print S.seekLastPrice("Ldata201306", "1370577600")
+    maxHoldTimes = [20,30,40,50]
+    for maxHoldTime in maxHoldTimes:
+        sql = "select * from " + "stats20171204_maxHoldTimeNo_" + str(maxHoldTime)
+        imex.mysqlToCSV(sql, 100000, "/home/emily/桌面/stockResult/stats20171204/",
+                        "stats20171204_maxHoldTimeNo_" + str(maxHoldTime) + ".csv")
 
     '''
     Reveunes = ['Revenue']
