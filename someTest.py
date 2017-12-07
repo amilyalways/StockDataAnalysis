@@ -30,7 +30,7 @@ print x
 
 
 db = DB('localhost', 'stockresult', 'root', '0910@mysql')
-
+imex= ImExport(db)
 '''
 sql = "select InA FROM revenue20171127_varyA"
 df = pd.read_sql(sql, db.conn)
@@ -64,7 +64,7 @@ df3['LInTime'] = map(lambda x: tt.time_to_long(x), df3["InTimes"])
 
 df3['diff'] = pd.rolling_apply(df3['LInTime'], 2, lambda x: x[1]-x[0])
 
-imex= ImExport(db)
+
 print df3
 #imex.save_df_csv(df3, "/home/emily/桌面/", "diffTime.csv")
 df4 = pd.read_csv("/home/emily/桌面/diffTime.csv")
@@ -72,6 +72,7 @@ df5 = df4[df4.IntervalTime < 5000]['IntervalTime']
 print df5.describe(percentiles=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98])
 '''
 
+'''
 sql = "SELECT Revenue, MRevenue, MiddleRevenue " \
       "FROM stats20171204_maxHoldTimeNo_50 where isMaxHoldTime=1 and MRevenue<Revenue and MRevenue>-2000"
 df = pd.read_sql(sql, db.conn)
@@ -80,3 +81,11 @@ sql1 = "SELECT Revenue, MRevenue, MiddleRevenue " \
       "FROM stats20171204_maxHoldTimeNo_50 where isMaxHoldTime=1 and MRevenue>Revenue and MRevenue>-2000"
 df1 = pd.read_sql(sql1, db.conn)
 print df1.describe(percentiles=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98])
+'''
+
+sql = "SELECT distinct ComputeLantency,IntervalNum,MuUpper,InA, count(*), avg(Revenue) " \
+      "FROM revenue20171205_fixedA where InTimes like '%-11:%' and OutTimes like '%-13:%' " \
+      "group by ComputeLantency,IntervalNum,MuUpper,InA"
+df1 = pd.read_sql(sql, db.conn)
+print df1
+imex.save_df_csv(df1, "/home/emily/桌面/stockresult/", "SpecialTrade.csv")
