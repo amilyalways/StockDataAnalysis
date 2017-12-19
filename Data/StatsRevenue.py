@@ -18,20 +18,25 @@ class StatsRevenue:
         trade_num = self.db.select(fromtable, "count(*)")[0]['count(*)'] / 2
         print "tradenum: " + str(trade_num)
         start = 0
-        offset = 10000000
+        offset = 500000
 
         while True:
-            sql1 = "select * from " + fromtable + " where isOpen=1 limit " + str(start) + "," + str(start+offset)
+            sql1 = "select * from " + fromtable + " where isOpen=1 limit " + str(start) + "," + str(offset)
+            print sql1
             df1 = pd.read_sql(sql1, self.db.conn)
-            df1.rename(columns={'Times': 'InTimes', 'LastPrice': 'InLastPrice', 'Expected': 'InExpected', 'A': 'InA'}, inplace=True)
+            df1.rename(columns={'Times': 'InTimes', 'LastPrice': 'InLastPrice'}, inplace=True)
+            #df1.rename(columns={'Times': 'InTimes', 'LastPrice': 'InLastPrice', 'Expected': 'InExpected', 'A': 'InA'}, inplace=True)
             print "df1 len: " + str(len(df1)) #注意如果再次进入这个循环,df1没有被覆盖,而是叠加在原来的结果上了...
-            sql2 = "select * from " + fromtable + " where isOpen=0 limit " + str(start) + "," + str(start+offset)
+            sql2 = "select * from " + fromtable + " where isOpen=0 limit " + str(start) + "," + str(offset)
+            print sql2
             df2 = pd.read_sql(sql2, self.db.conn)
-            df2.rename(columns={'Times': 'OutTimes', 'LastPrice': 'OutLastPrice', 'Expected': 'OutExpected', 'A': 'OutA',
-                                'isMaxtime': 'isMaxTimeOut'}, inplace=True)
+            df2.rename(columns={'Times': 'OutTimes', 'LastPrice': 'OutLastPrice'}, inplace=True)
+            #df2.rename(columns={'Times': 'OutTimes', 'LastPrice': 'OutLastPrice', 'Expected': 'OutExpected', 'A': 'OutA',
+             #                   'isMaxtime': 'isMaxTimeOut'}, inplace=True)
             print "df2 len: " + str(len(df2))
 
-            df2 = df2.loc[:, ["OutExpected", "OutA", "OutTimes", "OutLastPrice", "isOpen", "isMaxTimeOut"]]
+            df2 = df2.loc[:, ["OutTimes", "OutLastPrice", "isOpen"]]
+            #df2 = df2.loc[:, ["OutExpected", "OutA", "OutTimes", "OutLastPrice", "isOpen", "isMaxTimeOut"]]
             df3 = pd.concat([df1, df2], axis=1, join='inner')
             print "df3 len: " + str(len(df3))
             #df3['cutValue'] = df3['cutValue']/5
@@ -56,16 +61,18 @@ class StatsRevenue:
                 elif col == "InLastPrice":
                     new_cols.append("OutLastPrice")
                     new_cols.append("Revenue")
-                    new_cols.append("isMaxTimeOut")
+                    #new_cols.append("isMaxTimeOut")
 
                     #new_cols.append("outIsMaxTime")
-            new_cols.remove("isMaxtime")
+            #new_cols.remove("isMaxtime")
 
 
 
             df3 = df3[new_cols]
+            print "start to write db"
 
             imex.save_df_mysql(df3, totable, False)
+
             print start
             start += offset
             if start > trade_num:
@@ -79,10 +86,14 @@ class StatsRevenue:
             paras += con + ", "
         paras = paras[:-2]
 
-        sql0 = "select " + paras + ", count(*), sum(" + Revenue + "), avg(" + Revenue + ") from " + from_table
 
+        conditionAdd =  " InTimes not like '20130625%' and InTimes not like '20130624%' and InTimes not like '20130613%' "
+
+
+        sql0 = "select " + paras + ", count(*), sum(" + Revenue + "), avg(" + Revenue + ") from " \
+               + from_table + " where " + conditionAdd
         sql1 = "select " + paras + ", count(*), sum(" + Revenue + "), avg(" + Revenue + "), max(" + Revenue \
-               + "), min(" + Revenue + ") from " + from_table + " group by " + paras
+               + "), min(" + Revenue + ") from " + from_table + " where " + conditionAdd + " group by " + paras
         df1 = pd.read_sql(sql1, self.db.conn)
         df1.rename(columns={'count(*)': 'tradeNum', 'sum(' + Revenue + ')': 'total_revenue',
                             'avg(' + Revenue + ')': 'avg_reveune', 'max(' + Revenue + ')': 'max_reveune',
@@ -90,12 +101,12 @@ class StatsRevenue:
         print sql1
         print df1
 
-        sql2 = sql0 + " where " + Revenue + ">0 " + " group by " + paras
+        sql2 = sql0 + " and " + Revenue + ">0 " + " group by " + paras
         df2 = pd.read_sql(sql2, self.db.conn)
         df2.rename(columns={'count(*)': 'winNum', 'sum(' + Revenue + ')': 'total_revenue(win)',
                             'avg(' + Revenue + ')': 'avg_revenue(win)'}, inplace=True)
 
-        sql3 = sql0 + " where " + Revenue + "<0 " + " group by " + paras
+        sql3 = sql0 + " and " + Revenue + "<0 " + " group by " + paras
         df3 = pd.read_sql(sql3, self.db.conn)
         df3.rename(columns={'count(*)': 'loseNum', 'sum(' + Revenue + ')': 'total_revenue(lose)',
                             'avg(' + Revenue + ')': 'avg_revenue(lose)'}, inplace=True)
@@ -313,7 +324,7 @@ if __name__ == '__main__':
     #S.bestMiddleTimeRevenue("stats20171127_varyA", imex, "/home/emily/桌面/stockResult/stats20171129/normal/",
      #                   filenames, plt, "line", titles)
     #S.stats_maxWin("revenue20171201_maxHoldTime_20", "stats20171201_maxHoldTime_20")
-    S.save_revenue_mysql(imex, "tradeinfos20171207_varyAMaxHoldTimeInterval", 100000, "revenue20171207_varyAMaxHoldTimeInterval", "", False, MLtags)
+    #S.save_revenue_mysql(imex, "tradeinfos20171218_fixedA", 100000, "revenue20171218_fixedA", "", False, MLtags)
 
     #S.maxHoldTime("stats20171120_varyA", imex)
     #print S.seekLastPrice("Ldata201306", "1370577600")
@@ -325,16 +336,16 @@ if __name__ == '__main__':
                         "stats20171204_maxHoldTimeNo_" + str(maxHoldTime) + ".csv")
     '''
 
-    '''
+
     Reveunes = ['Revenue']
     for Reveune in Reveunes:
         print Reveune
 
-        condition = ["ComputeLantency", "IntervalNum", "MuUpper"]
-        tables = ["revenue20171206_cut"]
+        condition = ["ComputeLantency", "IntervalNum", "lnLastPriceThreshold"]
+        tables = ["revenue20171218_fixedA"]
         for table in tables:
             df = S.stats_revenue(table, condition, Reveune)
             IM = ImExport(S.db)
-            IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20171206/", "stats_" + table + ".csv")
-    '''
+            IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20171219/", "stats_" + table + "_1.csv")
+
 

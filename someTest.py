@@ -83,9 +83,28 @@ df1 = pd.read_sql(sql1, db.conn)
 print df1.describe(percentiles=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98])
 '''
 
+'''
 sql = "SELECT distinct ComputeLantency,IntervalNum,MuUpper,InA, count(*), avg(Revenue) " \
       "FROM revenue20171205_fixedA where InTimes like '%-11:%' and OutTimes like '%-13:%' " \
       "group by ComputeLantency,IntervalNum,MuUpper,InA"
 df1 = pd.read_sql(sql, db.conn)
 print df1
 imex.save_df_csv(df1, "/home/emily/桌面/stockresult/", "SpecialTrade.csv")
+'''
+
+'''
+sql = "select distinct ComputeLantency,IntervalNum,lnLastPriceThreshold, count(*),avg(Mu) " \
+      "from 20171213fixedaamuinlastprice group by ComputeLantency,IntervalNum,lnLastPriceThreshold"
+df = pd.read_sql(sql, db.conn)
+print df
+
+sql1 = "ALTER TABLE `stockresult`.`paras20171219_fixedA_1` ADD INDEX `search_index` " \
+       "(`ComputeLantency` ASC, `IntervalNum` ASC, `lnLastPriceThreshold` ASC)"
+db.cur.execute(sql1)
+db.conn.commit()
+'''
+
+sql = "SELECT LastPrice FROM stockresult.data201306 where Times like '20130625%'"
+df = pd.read_sql(sql, db.conn)
+df.plot()
+plt.show()
