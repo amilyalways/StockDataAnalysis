@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 from Utility.DB import DB
+from Utility.TimeTransfer import TimeTransfer
 from matplotlib import pyplot as plt
 import os
 import numpy as np
@@ -36,12 +37,33 @@ class ImExport:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
-    tablename = "revenue20171110"
-    path = "/Users/songxue/Desktop/"
-    filename = "revenue20171110.csv"
+    tablename = "revenue20171225_ML"
+    path = "/home/emily/下载/"
+    filename = "price_with_trade_tune.csv"
     sql = "select * from " + tablename
-    imex.mysqlToCSV(sql, 10000, path, filename)
+    #imex.mysqlToCSV(sql, 10000, path, filename)
+    df = pd.read_csv(path+filename)
+    df.rename(columns={'Times': 'InTimes'}, inplace=True)
+    tt = TimeTransfer()
+    df['OutTimes'] = map(lambda x, y: tt.long_to_time(tt.time_to_long(x)+3*y),
+                         df['InTimes'], df['HoldTime'])
+    cols = list(df)
+    new_cols = []
+    for col in cols[:-6]:
+        new_cols.append(col)
+        if col == "InTimes":
+            new_cols.append("OutTimes")
+            new_cols.append("HoldTime")
+        elif col == "LastPrice":
+            new_cols.append("RealProfitF")
+            new_cols.append("Sign")
+            new_cols.append("RealProfit")
+            new_cols.append("RealProfitS")
 
+
+    df = df[new_cols]
+    print df[:10]
+    imex.save_df_mysql(df, tablename, False)
 
 
 

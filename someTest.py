@@ -104,7 +104,13 @@ db.cur.execute(sql1)
 db.conn.commit()
 '''
 
-sql = "SELECT LastPrice FROM stockresult.data201306 where Times like '20130625%'"
-df = pd.read_sql(sql, db.conn)
-df.plot()
-plt.show()
+
+content = ""
+for i in range(1, 21):
+    content += "profit" + str(i) + ", "
+content = content[:-2]
+print content
+sql1 = "SELECT " + content + " FROM revenue20171225_ML where Sign=1 and RealProfitF>0"
+df1 = pd.read_sql(sql1, db.conn)
+df2 = df1.describe(percentiles=[0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98])
+imex.save_df_csv(df2, "/home/emily/桌面/stockResult/stats20171226/", "stats20171226_2.csv")
