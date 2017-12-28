@@ -104,13 +104,67 @@ db.cur.execute(sql1)
 db.conn.commit()
 '''
 
+'''
+tablenames = ["revenue20171227_ML0.2_1.0", "revenue20171227_ML0.4_1.8", "revenue20171227_ML0.6_2.0",
+              "revenue20171227_ML0.8_2.4"]
 
 content = ""
 for i in range(1, 21):
     content += "profit" + str(i) + ", "
 content = content[:-2]
 print content
-sql1 = "SELECT " + content + " FROM revenue20171225_ML where Sign=1 and RealProfitF>0"
-df1 = pd.read_sql(sql1, db.conn)
-df2 = df1.describe(percentiles=[0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98])
-imex.save_df_csv(df2, "/home/emily/桌面/stockResult/stats20171226/", "stats20171226_2.csv")
+#content = "RealProfitF"
+content = "distinct RealProfitF, avg(HoldTime)*3"
+#content = "count(*)"
+i = 0
+for tablename in tablenames:
+    sql1 = "SELECT " + content + " FROM `" + tablename + "` where Sign=1 group by RealProfitF"
+    print sql1
+    df1 = pd.read_sql(sql1, db.conn)
+    #df2 = df1.describe(percentiles=[0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.42, 0.45, 0.48, 0.5, 0.52, 0.55, 0.58, 0.6, 0.7, 0.8, 0.9, 0.95, 0.98])
+    df2 = df1
+    if i > 0:
+        df3 = pd.concat([df3, df2], axis=1, join='inner')
+    else:
+        df3 = df2
+    i += 1
+print df3
+imex.save_df_csv(df3, "/home/emily/桌面/stockResult/stats20171227/", "stats20171227_h.csv")
+'''
+
+filenames = ["rst-full-year-lr-up-0.0004.csv", "rst-full-year-lr-down-0.0004.csv", "rst-full-year-up-0.0004.csv",
+             "rst-full-year-down-0.0004.csv", "rst-full-year-lr-raw-up-0.0004.csv", "rst-full-year-lr-raw-down-0.0004.csv"]
+path = "/home/emily/下载/"
+
+i = 0
+for filename in filenames:
+    df1 = pd.read_csv(path+filename)
+    #df1.rename(columns={'0': filename[14:-11]}, inplace=True)
+    '''
+    if i < 4:
+        df1.columns = [filename[14:-11]]
+    else:
+        df1.columns = [filename[14:-11]+ "_p1", filename[14:-11]+ "_p2", filename[14:-11]+ "_p3"]
+
+    '''
+
+    if i > 0:
+        df3 = pd.concat([df3, df1], axis=1, join='inner')
+    else:
+        df3 = df1
+    i += 1
+
+
+print df3
+print "*******"
+
+sql1 = "select * from `revenue20171227_ML0.6_2.0`"
+df4 = pd.read_sql(sql1, db.conn)
+#df4.rename(columns={'HoldTime*3':'HoldTime'}, inplace=True)
+print df4
+print "************************"
+
+df3 = pd.concat([df4, df3], axis=1, join='inner')
+print df3
+
+imex.save_df_mysql(df3, "revenue20171228ML0.6_2.0category0.0004", True)

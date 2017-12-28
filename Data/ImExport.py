@@ -37,33 +37,53 @@ class ImExport:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
-    tablename = "revenue20171225_ML"
+    tablenames = ["revenue20171228_ML0.2_1.0_notune", "revenue20171228_ML0.4_1.8_notune", "revenue20171228_ML0.6_2.0_notune", "revenue20171228_ML0.8_2.4_notune"]
+    filenames = ["price_with_trade--0.2-1.0.csv", "price_with_trade--0.4-1.8.csv", "price_with_trade--0.6-2.0.csv", "price_with_trade--0.8-2.4.csv"]
     path = "/home/emily/下载/"
-    filename = "price_with_trade_tune.csv"
-    sql = "select * from " + tablename
-    #imex.mysqlToCSV(sql, 10000, path, filename)
-    df = pd.read_csv(path+filename)
-    df.rename(columns={'Times': 'InTimes'}, inplace=True)
-    tt = TimeTransfer()
-    df['OutTimes'] = map(lambda x, y: tt.long_to_time(tt.time_to_long(x)+3*y),
-                         df['InTimes'], df['HoldTime'])
-    cols = list(df)
-    new_cols = []
-    for col in cols[:-6]:
-        new_cols.append(col)
-        if col == "InTimes":
-            new_cols.append("OutTimes")
-            new_cols.append("HoldTime")
-        elif col == "LastPrice":
-            new_cols.append("RealProfitF")
-            new_cols.append("Sign")
-            new_cols.append("RealProfit")
-            new_cols.append("RealProfitS")
+    l = len(tablenames)
+
+    filenames1 = ["rst-full-year-lr-up-0.0004.csv", "rst-full-year-lr-down-0.0004.csv", "rst-full-year-up-0.0004.csv",
+                 "rst-full-year-down-0.0004.csv", "rst-full-year-lr-raw-up-0.0004.csv",
+                 "rst-full-year-lr-raw-down-0.0004.csv"]
+
+    i = 0
+    for filename in filenames1:
+        df1 = pd.read_csv(path + filename)
+        if i > 0:
+            df3 = pd.concat([df3, df1], axis=1, join='inner')
+        else:
+            df3 = df1
+        i += 1
+
+    for i in range(0, l):
+        sql = "select * from " + tablenames[i]
+        # imex.mysqlToCSV(sql, 10000, path, filename)
+        df = pd.read_csv(path + filenames[i])
+        df.rename(columns={'Times': 'InTimes'}, inplace=True)
+        tt = TimeTransfer()
+        df['OutTimes'] = map(lambda x, y: tt.long_to_time(tt.time_to_long(x) + 3 * y),
+                             df['InTimes'], df['HoldTime'])
+        cols = list(df)
+        new_cols = []
+        for col in cols[:-6]:
+            new_cols.append(col)
+            if col == "InTimes":
+                new_cols.append("OutTimes")
+                new_cols.append("HoldTime")
+            elif col == "LastPrice":
+                new_cols.append("RealProfitF")
+                new_cols.append("Sign")
+                new_cols.append("RealProfit")
+                new_cols.append("RealProfitS")
+
+        df = df[new_cols]
+        df = pd.concat([df, df3], axis=1, join='inner')
+        print df[:10]
+
+        imex.save_df_mysql(df, tablenames[i], False)
+        print "finish one write "
 
 
-    df = df[new_cols]
-    print df[:10]
-    imex.save_df_mysql(df, tablename, False)
 
 
 
