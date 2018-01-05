@@ -185,3 +185,7 @@ plt.xticks(np.arange(0, 5000, 200))
 
 plt.show()
 #imex.mysqlToCSV(sql, 100000, "/home/emily/桌面/", "revenue20171230.csv")
+
+sql1 = "select vector, vectorforzero from 20180104fixedaamuinlastpriceformean where length(vectorforzero)>40"
+df1 = pd.read_sql(sql1, db.conn)
+df2 = map()

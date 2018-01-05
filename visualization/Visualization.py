@@ -9,6 +9,7 @@ import time
 import os
 import pandas as pd
 from matplotlib import pyplot as plt
+import numpy as np
 
 
 class Visualization:
@@ -507,46 +508,178 @@ db = DB('localhost', 'stockresult','root','0910@mysql')
 
 #V.trend("data201308", "20130816", 150, 300, "trend20130816", "/home/emily/trade_trend/20171018/", config=config )
 
+if __name__ == '__main__':
 
-table_list = ["tradeinfos20171109"]
 
-for table in table_list:
-    isLog = False
-    day_list = []
-    sql = "SELECT distinct mid(Times,1,8) FROM "+ table
-    db.cur.execute(sql)
-    result = db.cur.fetchall()
-    for re in result:
-        day_list.append(re['mid(Times,1,8)'])
-    print(day_list)
     '''
-    sql = "SELECT distinct InMuUpper, lnLastPriceThreshold  FROM " + table + " where ComputeLantency=6 and IntervalNum=6"
-    db.cur.execute(sql)
-    result = db.cur.fetchall()
-    '''
-    hours = ["09:00:00 0", "09:30:00 0","10:00:00 0", "10:30:00 0", "11:00:00 0", "11:30:00 0",
-             "13:00:00 0", "13:30:00 0", "14:00:00 0", "14:30:00 0", "15:00:00 0", "15:30:00 0"]
+    table_list = ["tradeinfos20171109"]
 
-    tags = [1]
-    for tag in tags:
+    for table in table_list:
+        isLog = False
+        day_list = []
+        sql = "SELECT distinct mid(Times,1,8) FROM " + table
+        db.cur.execute(sql)
+        result = db.cur.fetchall()
         for re in result:
-            for day in day_list:
-                for h in range(0, 11):
-                    if h == 5:
-                        continue
-                    else:
-                        start = day + "-" + hours[h]
-                        end = day + "-" + hours[h + 1]
-                        V.trade_trend("data201306", table, db, tag, day, start, end, 10, "20", "20",
-                                      "0.0001")
+            day_list.append(re['mid(Times,1,8)'])
+        print(day_list)
+
+        sql = "SELECT distinct InMuUpper, lnLastPriceThreshold  FROM " + table + " where ComputeLantency=6 and IntervalNum=6"
+        db.cur.execute(sql)
+        result = db.cur.fetchall()
+
+        hours = ["09:00:00 0", "09:30:00 0", "10:00:00 0", "10:30:00 0", "11:00:00 0", "11:30:00 0",
+                 "13:00:00 0", "13:30:00 0", "14:00:00 0", "14:30:00 0", "15:00:00 0", "15:30:00 0"]
+
+        tags = [1]
+        for tag in tags:
+            for re in result:
+                for day in day_list:
+                    for h in range(0, 11):
+                        if h == 5:
+                            continue
+                        else:
+                            start = day + "-" + hours[h]
+                            end = day + "-" + hours[h + 1]
+                            V.trade_trend("data201306", table, db, tag, day, start, end, 10, "20", "20",
+                                          "0.0001")
+
+    V.Distribution_Revenue(db, "revenue20170901", "Revenue_dist20170908.png", "/Users/songxue/Desktop/")
+
+    V.mintue_trend_mu("data201306","innervaluemu",db,"201306","20130603-09:00:00 0", "20130628-16:00:00 0",480)
+    V.get_mu("data201306",db,"201306","20130603-09:00:00 0", 10)
+    path = "C:\\Users\\songxue\\Desktop\\Dmax_2010\\"
+    V.Dmax("Max_DPrice20170510_1020",path)
+    '''
+
+    table_list = ["`revenue20171228_ML0.2_1.0_notune`", "`revenue20171228_ML0.4_1.8_notune`",
+                  "`revenue20171228_ML0.6_2.0_notune`", "`revenue20171228_ML0.8_2.4_notune`"]
+    table_list = ["`revenue20171229_MLdown0.2_1.0_notune`", "`revenue20171229_MLdown0.4_1.8_notune`",
+                  "`revenue20171229_MLdown0.6_2.0_notune`", "`revenue20171229_MLdown0.8_2.4_notune`"]
+
+    for table in table_list:
+        '''
+        sql0 = "select distinct mid(InTimes,1,8) from " + table
+        df0 = pd.read_sql(sql0, db.conn)
+
+        sql = "select InTimes, RealProfitF from " + table + " where InTimes like '20130625%'"
+        df1 = pd.read_sql(sql, db.conn)
+        df2 = df1.set_index('InTimes')
+        print df2
+
+        df2.plot()
+        plt.grid()
+        plt.title("Revenue")
+        plt.ylabel("Revenue")
+        '''
 
 
-#V.Distribution_Revenue(db, "revenue20170901", "Revenue_dist20170908.png", "/Users/songxue/Desktop/")
+        sql2 = "select distinct mid(InTimes,1,8), std(RealProfitF), avg(RealProfitF), min(RealProfitF), max(RealProfitF) from " + table \
+               + "where Sign=1 group by mid(InTimes,1,8)"
+               #+ table_list[0] +" as a, " + table_list[1] + " as b, "+ table_list[2] + " as c, "+ table_list[1] + " as b, "
+
+        df3 = pd.read_sql(sql2, db.conn)
+        df4 = df3.set_index('mid(InTimes,1,8)')
+        print df4
+        plt.figure(figsize=(60, 35))
+        df5 = df4["std(RealProfitF)"]
+        df5.plot(linewidth=10)
+        plt.grid()
+        title = table + "_" + "Revenue Std"
+        plt.xlabel("InTimes", fontsize=40)
+        plt.ylabel("", fontsize=20)
+        plt.xticks(fontsize=40)
+        plt.yticks(fontsize=40)
+        plt.title(title, fontsize=60)
+        path = "/home/emily/桌面/stockResult/stats20180105/down/"
+        figname = title + ".png"
+        plt.savefig(path+figname)
+        plt.close()
+
+        df6 = df4.loc[:, 'min(RealProfitF)':'max(RealProfitF)']
+        print df6
+
+
+        df6.plot(figsize=(60, 35), linewidth=10)
+        title = table + "_" + "Min and Max Revenue"
+        plt.xlabel("InTimes", fontsize=40)
+        plt.ylabel("", fontsize=20)
+        plt.xticks(fontsize=40)
+        plt.yticks(fontsize=40)
+        plt.title(title, fontsize=60)
+        plt.grid()
+        plt.legend(fontsize=30)
+        figname = title + ".png"
+        plt.savefig(path + figname)
+        plt.close()
+
+        df7 = df4["avg(RealProfitF)"]
+        print df7
+        plt.figure(figsize=(60, 35))
+        df7.plot(linewidth=10)
+        title = table + "_" + "Avg Revenue"
+        plt.xlabel("InTimes", fontsize=40)
+        plt.ylabel("", fontsize=20)
+        plt.xticks(fontsize=40)
+        plt.yticks(fontsize=40)
+        plt.title(title, fontsize=60)
+        plt.grid()
+        figname = title + ".png"
+        plt.savefig(path + figname)
+        plt.close()
+
+        sql3 = "select distinct mid(InTimes,1,8), count(*) from " + table + " where Sign=1" + " group by mid(InTimes,1,8)"
+        sql4 = "select distinct mid(InTimes,1,8), count(*) from " + table + " where Sign=1 and RealProfitF>0" + " group by mid(InTimes,1,8)"
+        df8 = pd.read_sql(sql3, db.conn)
+        df9 = pd.read_sql(sql4, db.conn)
+        df8 = df8.set_index('mid(InTimes,1,8)')
+        df9 = df9.set_index('mid(InTimes,1,8)')
+        df9.rename(columns={'count(*)':'winNum'}, inplace=True)
+        print "df9 **************"
+        print df9
+        df8 = pd.concat([df8, df9], axis=1, join='outer')
+        df8['winPercent'] = df8['winNum'] / df8['count(*)']
+
+        print "df8 **********************"
+        print df8
+        df10 = df8['winPercent']
+        plt.figure(figsize=(60, 35))
+        df10.plot(linewidth=10)
+        title = table + "_" +"winPercent"
+        plt.xlabel("InTimes", fontsize=40)
+        plt.ylabel("", fontsize=20)
+        plt.xticks(fontsize=40)
+        plt.yticks(fontsize=40)
+        plt.title(title, fontsize=60)
+        plt.grid()
+        figname = title + ".png"
+        plt.savefig(path + figname)
+        plt.close()
+
+        df11 = df8['count(*)']
+        plt.figure(figsize=(60, 35))
+        df11.plot(linewidth=10)
+        title = table + "_" +"tradeNum"
+        plt.xlabel("InTimes", fontsize=40)
+        plt.ylabel("", fontsize=20)
+        plt.xticks(fontsize=40)
+        plt.yticks(fontsize=40)
+        plt.title(title, fontsize=60)
+        plt.grid()
+        figname = title + ".png"
+        plt.savefig(path + figname)
+        plt.close()
 
 
 
 
-#V.mintue_trend_mu("data201306","innervaluemu",db,"201306","20130603-09:00:00 0", "20130628-16:00:00 0",480)
-#V.get_mu("data201306",db,"201306","20130603-09:00:00 0", 10)
-#path = "C:\\Users\\songxue\\Desktop\\Dmax_2010\\"
-#V.Dmax("Max_DPrice20170510_1020",path)
+
+
+
+
+
+
+
+
+
+
