@@ -269,8 +269,6 @@ class StatsRevenue:
             print "Middle Rest"
             return 0
 
-
-
     def maxHoldTime(self, tradeTable, imex):
         sql = "select * from " + tradeTable + " limit 1820"
         df1 = pd.read_sql(sql, self.db.conn)
@@ -304,12 +302,49 @@ class StatsRevenue:
 
             imex.save_df_mysql(df1, "stats20171204_maxHoldTimeNo", False)
 
+    def basic_stats(self, table_list, title_list, groupByContents, contents, conditions, return_type, new_index):
+        sql0 = "select "
+        sql_gb = ""
+        sql_cd = ""
+        if len(groupByContents)>0:
+            sql0 += "distinct "
+            sql_gb = " group by "
+            for gbc in groupByContents:
+                sql0 += gbc + ", "
+                sql_gb += gbc + ", "
+        if len(contents)>0:
+            for c in contents:
+                sql0 += c + ", "
+        sql0 = sql0[:-2]
+        if len(conditions) > 0:
+            sql_cd = " where "
+            for condition in conditions:
+                sql_cd += condition + " and "
+            sql_cd = sql_cd[:-5]
+        i = 0
+        df_rs = {}
+        for table, title in zip(table_list, title_list):
+            sql = sql0 + " from " + table + sql_cd + sql_gb[:-2]
+            print sql
+            df_temp = pd.read_sql(sql, db.conn)
+            if len(new_index) > 0:
+                df_temp = df_temp.set_index(new_index)
 
-
-
-
-
-
+            if return_type == "ByTable":
+                df_rs.setdefault(table, df_temp)
+            elif return_type == "ByContent":
+                for content in contents:
+                    if i == 0:
+                        df_rs.setdefault(content, df_temp[content])
+                        print "------------------"
+                        print df_temp[content].index
+                    else:
+                        df_rs[content] = pd.concat([df_rs[content], df_temp[content]], axis=1, join="outer")
+                    df_rs[content].rename(columns={content: title}, inplace=True)
+                    if i == 0:
+                        print df_rs[content]
+            i += 1
+        return df_rs
 
 
 
@@ -336,7 +371,17 @@ if __name__ == '__main__':
                         "stats20171204_maxHoldTimeNo_" + str(maxHoldTime) + ".csv")
     '''
 
+    df_rs = S.basic_stats(["`revenue20171228_ML0.2_1.0_notune`", "`revenue20171228_ML0.4_1.8_notune`",
+                  "`revenue20171228_ML0.6_2.0_notune`", "`revenue20171228_ML0.8_2.4_notune`"],
+                  ["0.2_1.0", "0.4_1.8", "0.6_2.0", "0.8_2.4"], ["mid(InTimes,1,8)"],
+                  ["std(RealProfitF)", "avg(RealProfitF)"],
+                  [], "ByContent", 'mid(InTimes,1,8)')
+    for key in df_rs:
+        print key
+        print df_rs[key]
+        print "**************"
 
+'''
     Reveunes = ['Revenue']
     for Reveune in Reveunes:
         print Reveune
@@ -347,5 +392,5 @@ if __name__ == '__main__':
             df = S.stats_revenue(table, condition, Reveune)
             IM = ImExport(S.db)
             IM.save_df_csv(df, "/home/emily/桌面/stockResult/stats20171219/", "stats_" + table + "_1.csv")
-
+'''
 
