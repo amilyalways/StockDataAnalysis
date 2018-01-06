@@ -5,6 +5,7 @@ from Utility.PlotFigure import LineChart
 from Utility.PlotFigure import Scatter
 from Utility.PlotFigure import DoubleAxisLineChart
 from Utility.PlotFigure import BoxFigure
+from Data.StatsRevenue import StatsRevenue
 import time
 import os
 import pandas as pd
@@ -499,9 +500,9 @@ class Visualization:
         box.plot(ymin, ymax)
         box.save(figName, path)
 
-    def plot_multi_df(self, df_list, titles, path):
-        for df, title in zip(df_list,titles):
-            df.plot(figsize=(60, 35), linewidth=10)
+    def plot_multi_df(self, df_list, path):
+        for title in df_list:
+            df_list[title].plot(figsize=(60, 35), linewidth=10)
             plt.grid()
             plt.xlabel("InTimes", fontsize=40)
             plt.ylabel("", fontsize=20)
@@ -512,8 +513,6 @@ class Visualization:
             figname = title + ".png"
             plt.savefig(path + figname)
             plt.close()
-
-
 
 
 V = Visualization()
@@ -572,145 +571,28 @@ if __name__ == '__main__':
     table_list = ["`revenue20171229_MLdown0.2_1.0_notune`", "`revenue20171229_MLdown0.4_1.8_notune`",
                   "`revenue20171229_MLdown0.6_2.0_notune`", "`revenue20171229_MLdown0.8_2.4_notune`"]
 
-    i = 0
-    for table in table_list:
-        '''
-        sql0 = "select distinct mid(InTimes,1,8) from " + table
-        df0 = pd.read_sql(sql0, db.conn)
-
-        sql = "select InTimes, RealProfitF from " + table + " where InTimes like '20130625%'"
-        df1 = pd.read_sql(sql, db.conn)
-        df2 = df1.set_index('InTimes')
-        print df2
-
-        df2.plot()
-        plt.grid()
-        plt.title("Revenue")
-        plt.ylabel("Revenue")
-        '''
-        sql2 = "select distinct mid(InTimes,1,8), std(RealProfitF), avg(RealProfitF), min(RealProfitF), max(RealProfitF) from " + table \
-               + "where Sign=1 group by mid(InTimes,1,8)"
-               #+ table_list[0] +" as a, " + table_list[1] + " as b, "+ table_list[2] + " as c, "+ table_list[1] + " as b, "
-
-        df3 = pd.read_sql(sql2, db.conn)
-        df4 = df3.set_index('mid(InTimes,1,8)')
-        print "df4****************"
-        print df4
-
-        if i == 0:
-            df_std = df4['std(RealProfitF)']
-        else:
-            df_std = pd.concat([df_std, df4['std(RealProfitF)']], axis=1, join='outer')
-        df_std.rename(columns={'std(RealProfitF)': table[17:-1]}, inplace=True)
-
-
-        if i == 0:
-            df_avg = df4['avg(RealProfitF)']
-        else:
-            df_avg = pd.concat([df_avg, df4['avg(RealProfitF)']], axis=1, join='outer')
-        df_avg.rename(columns={'avg(RealProfitF)': table[17:-1]}, inplace=True)
-
-        i += 1
 
     path = "/home/emily/桌面/stockResult/stats20180105/"
-    titles = ["std Revenue", "avg Revenue"]
+    titles = ["std Revenue", "avg Revenue", ]
 
-    V.plot_multi_df([df_std, df_avg], titles, path)
-'''
-    df5.plot(figsize=(60, 35), linewidth=10)
-    plt.grid()
-    title = "Revenue Std"
-    plt.xlabel("InTimes", fontsize=40)
-    plt.ylabel("", fontsize=20)
-    plt.xticks(fontsize=40)
-    plt.yticks(fontsize=40)
-    plt.title(title, fontsize=60)
-    plt.legend(loc='upper right', prop={'size': 35})
-    path = "/home/emily/桌面/stockResult/stats20180105/"
-    figname = title + ".png"
+    S = StatsRevenue()
+    df_rs1 = S.basic_stats(db, table_list,
+                          ["0.2_1.0", "0.4_1.8", "0.6_2.0", "0.8_2.4"], ["mid(InTimes,1,8)"],
+                          ["std(RealProfitF)", "avg(RealProfitF)", "min(RealProfitF)", "max(RealProfitF)", "count(*)"],
+                          ["Sign=1"], "ByContent", 'mid(InTimes,1,8)')
+    df_rs2 = S.basic_stats(db, table_list,
+                          ["0.2_1.0", "0.4_1.8", "0.6_2.0", "0.8_2.4"], ["mid(InTimes,1,8)"],
+                          ["count(*)"],
+                          ["Sign=1", "RealProfitF>0"], "ByContent", 'mid(InTimes,1,8)')
 
-    plt.savefig(path + figname)
-    plt.close()
-
-
-    for table in table_list:
-        df6 = df4.loc[:, 'min(RealProfitF)':'max(RealProfitF)']
-        print df6
+    df_rs3 = {}
+    df_rs3.setdefault("tradeNum", df_rs1["count(*)"])
+    df_rs3.setdefault("winPercent", df_rs2["count(*)"]/df_rs1["count(*)"])
+    V.plot_multi_df(df_rs1, path)
+    V.plot_multi_df(df_rs3, path)
 
 
-        df6.plot(figsize=(60, 35), linewidth=10)
-        title = table + "_" + "Min and Max Revenue"
-        plt.xlabel("InTimes", fontsize=40)
-        plt.ylabel("", fontsize=20)
-        plt.xticks(fontsize=40)
-        plt.yticks(fontsize=40)
-        plt.title(title, fontsize=60)
-        plt.grid()
-        plt.legend(fontsize=30)
-    figname = title + ".png"
-    plt.savefig(path + figname)
-    plt.close()
 
-    for table in table_list:
-
-        df7 = df4["avg(RealProfitF)"]
-        print df7
-        plt.figure(figsize=(60, 35))
-        df7.plot(linewidth=10)
-        title = table + "_" + "Avg Revenue"
-        plt.xlabel("InTimes", fontsize=40)
-        plt.ylabel("", fontsize=20)
-        plt.xticks(fontsize=40)
-        plt.yticks(fontsize=40)
-        plt.title(title, fontsize=60)
-        plt.grid()
-    figname = title + ".png"
-    plt.savefig(path + figname)
-    plt.close()
-
-    for table in table_list:
-        sql3 = "select distinct mid(InTimes,1,8), count(*) from " + table + " where Sign=1" + " group by mid(InTimes,1,8)"
-        sql4 = "select distinct mid(InTimes,1,8), count(*) from " + table + " where Sign=1 and RealProfitF>0" + " group by mid(InTimes,1,8)"
-        df8 = pd.read_sql(sql3, db.conn)
-        df9 = pd.read_sql(sql4, db.conn)
-        df8 = df8.set_index('mid(InTimes,1,8)')
-        df9 = df9.set_index('mid(InTimes,1,8)')
-        df9.rename(columns={'count(*)':'winNum'}, inplace=True)
-        print "df9 **************"
-        print df9
-        df8 = pd.concat([df8, df9], axis=1, join='outer')
-        df8['winPercent'] = df8['winNum'] / df8['count(*)']
-
-        print "df8 **********************"
-        print df8
-        df10 = df8['winPercent']
-        plt.figure(figsize=(60, 35))
-        df10.plot(linewidth=10)
-        title = table + "_" +"winPercent"
-        plt.xlabel("InTimes", fontsize=40)
-        plt.ylabel("", fontsize=20)
-        plt.xticks(fontsize=40)
-        plt.yticks(fontsize=40)
-        plt.title(title, fontsize=60)
-        plt.grid()
-        figname = title + ".png"
-        plt.savefig(path + figname)
-        plt.close()
-
-        df11 = df8['count(*)']
-        plt.figure(figsize=(60, 35))
-        df11.plot(linewidth=10)
-        title = table + "_" +"tradeNum"
-        plt.xlabel("InTimes", fontsize=40)
-        plt.ylabel("", fontsize=20)
-        plt.xticks(fontsize=40)
-        plt.yticks(fontsize=40)
-        plt.title(title, fontsize=60)
-        plt.grid()
-        figname = title + ".png"
-        plt.savefig(path + figname)
-        plt.close()
-'''
 
 
 

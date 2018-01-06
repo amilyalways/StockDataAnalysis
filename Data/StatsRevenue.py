@@ -302,7 +302,8 @@ class StatsRevenue:
 
             imex.save_df_mysql(df1, "stats20171204_maxHoldTimeNo", False)
 
-    def basic_stats(self, table_list, title_list, groupByContents, contents, conditions, return_type, new_index):
+    #根据条件进行sql查询,可以按照table或者元素分类的返回存储了df的字典
+    def basic_stats(self, db, table_list, title_list, groupByContents, contents, conditions, return_type, new_index):
         sql0 = "select "
         sql_gb = ""
         sql_cd = ""
@@ -336,13 +337,10 @@ class StatsRevenue:
                 for content in contents:
                     if i == 0:
                         df_rs.setdefault(content, df_temp[content])
-                        print "------------------"
-                        print df_temp[content].index
                     else:
                         df_rs[content] = pd.concat([df_rs[content], df_temp[content]], axis=1, join="outer")
-                    df_rs[content].rename(columns={content: title}, inplace=True)
-                    if i == 0:
-                        print df_rs[content]
+                    df_rs[content].rename(columns={content: title, 0: title_list[0]}, inplace=True)
+
             i += 1
         return df_rs
 
