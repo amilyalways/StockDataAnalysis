@@ -170,7 +170,7 @@ sql = "SELECT count(*), avg(a.RealProfitF), avg(b.RealProfitF), avg(a.HoldTime)*
       "where a.Sign=1 and b.Sign=1  and a.InTimes=b.InTimes and a.OutTimes=b.OutTimes"
 df1 = pd.read_sql(sql, db.conn)
 print df1
-'''
+
 #(mean-avg(mean))/std(mean), (LastPrice-avg(LastPrice))/std(LastPrice)
 #(mean-3.511745)/5.218067, (LastPrice-2390.856635)/123.657932
 sql = "SELECT mu,LastPrice  FROM 20171213fixedaamuinlastpriceformean" \
@@ -189,3 +189,13 @@ plt.show()
 sql1 = "select vector, vectorforzero from 20180104fixedaamuinlastpriceformean where length(vectorforzero)>40"
 df1 = pd.read_sql(sql1, db.conn)
 df2 = map()
+'''
+db1 = DB("10.141.221.124", "stockresult", "root", "cslab123")
+sql2 = "show tables"
+db1.cur.execute(sql2)
+rs = db1.cur.fetchall()
+print rs
+
+url = "10.141.221.124/公共资料库/数据挖掘/20180108/交易结果/price_with_trade-down-0.2--1.0.csv"
+df = pd.read_csv(url)
+print df
