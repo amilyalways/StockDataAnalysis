@@ -37,19 +37,19 @@ class ImExport:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
-    tablenames = ["revenue20171229_MLdown0.2_1.0_notune", "revenue20171229_MLdown0.4_1.8_notune", "revenue20171229_MLdown0.6_2.0_notune", "revenue20171229_MLdown0.8_2.4_notune"]
+    tablenames = ["revenue20180110_MLdown0.2_1.0_notune", "revenue20180110_MLdown0.4_1.8_notune", "revenue20180110_MLdown0.6_2.0_notune", "revenue20180110_MLdown0.8_2.4_notune"]
     #filenames = ["price_with_trade--0.2-1.0.csv", "price_with_trade--0.4-1.8.csv", "price_with_trade--0.6-2.0.csv", "price_with_trade--0.8-2.4.csv"]
     filenames = ["price_with_trade-down-0.2--1.0.csv", "price_with_trade-down-0.4--1.8.csv", "price_with_trade-down-0.6--2.0.csv", "price_with_trade-down-0.8--2.4.csv"]
-    path = "/home/emily/下载/"
+    path = "/home/emily/下载/data20180110/"
     l = len(tablenames)
 
-    filenames1 = ["rst-full-year-lr-up-0.0004.csv", "rst-full-year-lr-down-0.0004.csv", "rst-full-year-up-0.0004.csv",
-                 "rst-full-year-down-0.0004.csv", "rst-full-year-lr-raw-up-0.0004.csv",
-                 "rst-full-year-lr-raw-down-0.0004.csv"]
+
+    filenames1 = ["rst-full-year-lr-up-0.0004-0.csv", "rst-full-year-lr-down-0.0004-0.csv", "rst-full-year-up-0.0004.csv",
+                 "rst-full-year-down-0.0004.csv", "rst-full-year-up-0.0008.csv", "rst-full-year-down-0.0008.csv",]
 
     i = 0
     for filename in filenames1:
-        df1 = pd.read_csv(path + filename)
+        df1 = pd.read_csv(path + filename, header=None, names=[filename[14:-4]])
         if i > 0:
             df3 = pd.concat([df3, df1], axis=1, join='inner')
         else:
@@ -57,7 +57,7 @@ if __name__ == '__main__':
         i += 1
 
     for i in range(0, l):
-        sql = "select * from " + tablenames[i]
+        #sql = "select * from " + tablenames[i]
         # imex.mysqlToCSV(sql, 10000, path, filename)
         df = pd.read_csv(path + filenames[i])
         df.rename(columns={'Times': 'InTimes'}, inplace=True)
@@ -66,16 +66,25 @@ if __name__ == '__main__':
                              df['InTimes'], df['HoldTime'])
         cols = list(df)
         new_cols = []
-        for col in cols[:-6]:
-            new_cols.append(col)
+        for col in cols:
             if col == "InTimes":
+                new_cols.append(col)
                 new_cols.append("OutTimes")
                 new_cols.append("HoldTime")
             elif col == "LastPrice":
+                new_cols.append(col)
+                new_cols.append("AskPrice")
+                new_cols.append("BidPrice")
                 new_cols.append("RealProfitF")
                 new_cols.append("Sign")
                 new_cols.append("RealProfit")
                 new_cols.append("RealProfitS")
+
+        for col in cols:
+            if col not in new_cols:
+                new_cols.append(col)
+
+
 
         df = df[new_cols]
         df = pd.concat([df, df3], axis=1, join='inner')

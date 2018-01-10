@@ -568,11 +568,14 @@ if __name__ == '__main__':
 
     table_list = ["`revenue20171228_ML0.2_1.0_notune`", "`revenue20171228_ML0.4_1.8_notune`",
                   "`revenue20171228_ML0.6_2.0_notune`", "`revenue20171228_ML0.8_2.4_notune`"]
-    table_list = ["`revenue20171229_MLdown0.2_1.0_notune`", "`revenue20171229_MLdown0.4_1.8_notune`",
-                  "`revenue20171229_MLdown0.6_2.0_notune`", "`revenue20171229_MLdown0.8_2.4_notune`"]
+    table_list = ["`revenue20180110_MLdown0.2_1.0_notune`", "`revenue20180110_MLdown0.4_1.8_notune`",
+                  "`revenue20180110_MLdown0.6_2.0_notune`", "`revenue20180110_MLdown0.8_2.4_notune`"]
 
 
-    path = "/home/emily/桌面/stockResult/stats20180105/"
+    path = "/home/emily/桌面/stockResult/stats20180110/"
+    if not os.path.exists(path):
+        os.makedirs(path)
+    
     titles = ["std Revenue", "avg Revenue", ]
 
     S = StatsRevenue()

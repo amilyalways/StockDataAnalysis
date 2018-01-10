@@ -196,6 +196,19 @@ db1.cur.execute(sql2)
 rs = db1.cur.fetchall()
 print rs
 
-url = "10.141.221.124/公共资料库/数据挖掘/20180108/交易结果/price_with_trade-down-0.2--1.0.csv"
-df = pd.read_csv(url)
-print df
+path = "/home/emily/下载/data20180110/"
+filename = "price_with_trade-up--0.8-2.4.csv"
+df = pd.read_csv(path+filename)
+df['new_Times'] = map(lambda x: x[:-2], df['Times'])
+print df.head(10)
+print pd.to_datetime('20130318 09:15:21')
+print pd.to_datetime('20130318-09:15:21')
+df['new_Times'] = pd.to_datetime(df['new_Times'], format='%Y%m%d-%H:%M:%S')
+df = df.set_index('new_Times', inplace=True)
+
+
+print df.head(10)
+
+df2 = df.resample('3T')
+print df2.head(20)
+
