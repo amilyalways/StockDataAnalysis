@@ -37,10 +37,10 @@ class ImExport:
 if __name__ == '__main__':
     db = DB('localhost', 'stockresult', 'root', '0910@mysql')
     imex = ImExport(db)
-    tablenames = ["revenue20180110_MLdown0.2_1.0_notune", "revenue20180110_MLdown0.4_1.8_notune", "revenue20180110_MLdown0.6_2.0_notune", "revenue20180110_MLdown0.8_2.4_notune"]
+    tablenames = ["revenue20180112_MLdown0.2_1.0_notune", "revenue20180112_MLdown0.4_1.8_notune", "revenue20180112_MLdown0.6_2.0_notune", "revenue20180112_MLdown0.8_2.4_notune"]
     #filenames = ["price_with_trade--0.2-1.0.csv", "price_with_trade--0.4-1.8.csv", "price_with_trade--0.6-2.0.csv", "price_with_trade--0.8-2.4.csv"]
     filenames = ["price_with_trade-down-0.2--1.0.csv", "price_with_trade-down-0.4--1.8.csv", "price_with_trade-down-0.6--2.0.csv", "price_with_trade-down-0.8--2.4.csv"]
-    path = "/home/emily/下载/data20180110/"
+    path = "/home/emily/下载/data20180112/"
     l = len(tablenames)
 
 

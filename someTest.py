@@ -191,11 +191,12 @@ df1 = pd.read_sql(sql1, db.conn)
 df2 = map()
 '''
 db1 = DB("10.141.221.124", "stockresult", "root", "cslab123")
-sql2 = "show tables"
+sql2 = "SELECT * FROM 20180110fixedaaandz limit 20448600, 100"
 db1.cur.execute(sql2)
 rs = db1.cur.fetchall()
 print rs
 
+'''
 path = "/home/emily/下载/data20180110/"
 filename = "price_with_trade-up--0.8-2.4.csv"
 df = pd.read_csv(path+filename)
@@ -211,4 +212,4 @@ print df.head(10)
 
 df2 = df.resample('3T')
 print df2.head(20)
-
+'''
