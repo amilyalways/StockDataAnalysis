@@ -32,6 +32,7 @@ class ImExport:
 
     def save_df_mysql(self, df, tablename, index):
         engine = create_engine('mysql+pymysql://root:0910@mysql@localhost/stockresult', echo=False)
+        #engine = create_engine('mysql+pymysql://root:cslab123@10.141.221.124/stockresult', echo=False)
         df.to_sql(tablename, engine, if_exists='append', index=index)
 
 if __name__ == '__main__':

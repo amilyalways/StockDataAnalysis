@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 from Utility.TimeTransfer import TimeTransfer
 from Data.ImExport import ImExport
 import numpy as np
+import os
 '''
 stamp = datetime(2017,9,20,9,21,10, 5)
 print stamp
@@ -190,12 +191,53 @@ sql1 = "select vector, vectorforzero from 20180104fixedaamuinlastpriceformean wh
 df1 = pd.read_sql(sql1, db.conn)
 df2 = map()
 '''
-db1 = DB("10.141.221.124", "stockresult", "root", "cslab123")
-sql2 = "SELECT * FROM 20180110fixedaaandz limit 20448600, 100"
-db1.cur.execute(sql2)
-rs = db1.cur.fetchall()
-print rs
+'''
+db_remote = DB("10.141.221.124", "stockresult", "root", "cslab123")
 
+sql2 = "SELECT Times, mu, isOpen, inmu FROM 20180119fixedaaandz where Times like '201303%' and MuUpper=0.0004 and lnLastPriceThreshold=0.0002"
+df_trade = pd.read_sql(sql2, db_remote.conn)
+
+sql3 = "select Times, mu from 20180121fixedaamuinlastprice where Times like '201303%' and ComputeLantency=35 and lnLastPriceThreshold=0.0002"
+df_mu = pd.read_sql(sql3, db_remote.conn)
+
+df_trade.rename(columns={'mu':'t_mu'}, inplace=True)
+print df_trade
+print "******************************"
+print df_mu
+print df_trade.describe()
+print "******************************"
+df_rs = pd.merge(df_mu, df_trade, how='outer', on='Times')
+print df_rs
+
+path = "/home/emily/桌面/stockResult/stats20180122/"
+if not os.path.exists(path):
+    os.makedirs(path)
+imex.save_df_csv(df_rs, path, "mu_compare35_201303.csv")
+'''
+path = "/home/emily/桌面/stockResult/stats20180125/"
+sql_revenue = "select * from revenue20180124_c_i where ComputeLantency=6 and IntervalNum=840 " \
+              "and MuUpper=0.0008 and MuLower=-0.0004 and lnLastPriceThreshold=0.003 and A=0.006"
+sql_revenue = "select * from revenue20180124_c_i where ComputeLantency=30 and IntervalNum=240 " \
+              "and MuUpper=0.0002 and MuLower=-0.0001 and lnLastPriceThreshold=0.003 and A=0.015"
+#sql_revenue = "select * from revenue20180124"
+df_revenue = pd.read_sql(sql_revenue, db.conn)
+imex.save_df_csv(df_revenue, path, "revenue20180124_C_I_30_240.csv")
+'''
+days = ['02','05', '06', '07','08','20','21','27','28','30']
+path = "/home/emily/桌面/stockResult/stats20180125/"
+if not os.path.exists(path):
+    os.makedirs(path)
+for day in days:
+    sql_trend = "select * from data201308 where Times like '201308" + day + "%'"
+    df_trend = pd.read_sql(sql_trend, db.conn)
+    imex.save_df_csv(df_trend, path, "data201308"+day+".csv")
+'''
+
+'''
+sql4 = "select * from data201306 where Times like '20130603%'"
+df_tren = pd.read_sql(sql4, db.conn)
+imex.save_df_csv(df_tren, path, "trend20130603.csv")
+'''
 '''
 path = "/home/emily/下载/data20180110/"
 filename = "price_with_trade-up--0.8-2.4.csv"

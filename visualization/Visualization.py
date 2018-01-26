@@ -571,14 +571,21 @@ if __name__ == '__main__':
     table_list = ["`revenue20180110_MLdown0.2_1.0_notune`", "`revenue20180110_MLdown0.4_1.8_notune`",
                   "`revenue20180110_MLdown0.6_2.0_notune`", "`revenue20180110_MLdown0.8_2.4_notune`"]
 
+    table_list = ['20180119fixedaaandz']
 
-    path = "/home/emily/桌面/stockResult/stats20180110/"
+
+    path = "/home/emily/桌面/stockResult/stats20180119/"
     if not os.path.exists(path):
         os.makedirs(path)
     
     titles = ["std Revenue", "avg Revenue", ]
 
     S = StatsRevenue()
+
+    df_rs = S.basic_stats(db, table_list, titles, 'MuUpper',[])
+
+
+    '''
     df_rs1 = S.basic_stats(db, table_list,
                           ["0.2_1.0", "0.4_1.8", "0.6_2.0", "0.8_2.4"], ["mid(InTimes,1,8)"],
                           ["std(RealProfitF)", "avg(RealProfitF)", "min(RealProfitF)", "max(RealProfitF)", "count(*)"],
@@ -588,11 +595,14 @@ if __name__ == '__main__':
                           ["count(*)"],
                           ["Sign=1", "RealProfitF>0"], "ByContent", 'mid(InTimes,1,8)')
 
+
+
     df_rs3 = {}
     df_rs3.setdefault("tradeNum", df_rs1["count(*)"])
     df_rs3.setdefault("winPercent", df_rs2["count(*)"]/df_rs1["count(*)"])
     V.plot_multi_df(df_rs1, path)
     V.plot_multi_df(df_rs3, path)
+    '''
 
 
 
