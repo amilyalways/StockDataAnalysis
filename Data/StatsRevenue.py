@@ -100,14 +100,16 @@ class StatsRevenue:
         conditionAdd = ""
 
 
-        sql0 = "select " + paras + ", count(*), sum(" + Revenue + "), avg(" + Revenue + ") from " \
+        sql0 = "select " + paras + ", count(*),  sum(" + Revenue + "), avg(" + Revenue + ") from " \
                + from_table
-        sql1 = "select " + paras + ", count(*), sum(" + Revenue + "), avg(" + Revenue + "), max(" + Revenue \
+        sql1 = "select " + paras + ", count(*), count(distinct mid(InTimes,1,8)), sum(" + Revenue + "), avg(" + Revenue + "), max(" + Revenue \
                + "), min(" + Revenue + ") from " + from_table + " group by " + paras
         df1 = pd.read_sql(sql1, self.db.conn)
-        df1.rename(columns={'count(*)': 'tradeNum', 'sum(' + Revenue + ')': 'total_revenue',
+        df1.rename(columns={'count(*)': 'tradeNum', 'count(distinct mid(InTimes,1,8))': 'tradeDayNum',
+                            'sum(' + Revenue + ')': 'total_revenue',
                             'avg(' + Revenue + ')': 'avg_reveune', 'max(' + Revenue + ')': 'max_reveune',
                             'min(' + Revenue + ')': 'min_reveune'}, inplace=True)
+        df1['avgDayTradeNum'] = map(lambda x, y: x / y if y > 0 else 0, df1['tradeNum'], df1['tradeDayNum'])
         print sql1
         print df1
 
@@ -126,6 +128,7 @@ class StatsRevenue:
         df = pd.merge(df1, df2, how='left', on=condition)
         df = pd.merge(df, df3, how='left', on=condition)
         df['winPercent'] = df['winNum'] / df['tradeNum']
+
         df.fillna(0, inplace=True)
 
         return df
@@ -361,7 +364,7 @@ class StatsRevenue:
         pass
 
     #找到最适合的几组参数,进行下一次迭代
-    def pick_good_paras(self, trade_tableName, date):
+    def pick_good_paras(self, trade_tableName, date, minDayTradeNum=15):
         revenue_tableName = "revenue" + trade_tableName[:10]
         self.save_revenue_mysql(imex_remote, trade_tableName, 100000, revenue_tableName, "", False, [])
 
@@ -373,7 +376,9 @@ class StatsRevenue:
             os.makedirs(path)
         imex.save_df_csv(df, path, "stats_" + revenue_tableName + ".csv")
 
-        df_good = df['avg_day_tradeNum'>=15]
+        df_good_candicate = df['avgDayTradeNum' >= minDayTradeNum]
+        df_good = df_good_candicate
+
 
 
 
@@ -389,7 +394,7 @@ if __name__ == '__main__':
     #S.bestMiddleTimeRevenue("stats20171127_varyA", imex, "/home/emily/桌面/stockResult/stats20171129/normal/",
      #                   filenames, plt, "line", titles)
     #S.stats_maxWin("revenue20171201_maxHoldTime_20", "stats20171201_maxHoldTime_20")
-    S.save_revenue_mysql(imex_remote, "tradeinfos20180124_c_i", 100000, "revenue20180124_c_i", "", False, MLtags)
+    #S.save_revenue_mysql(imex_remote, "tradeinfos20180124_c_i", 100000, "revenue20180124_c_i", "", False, MLtags)
 
     #S.maxHoldTime("stats20171120_varyA", imex)
     #print S.seekLastPrice("Ldata201306", "1370577600")
@@ -414,14 +419,14 @@ if __name__ == '__main__':
         print "**************"
 
     '''
-    '''
+
     Reveunes = ['Revenue']
     for Reveune in Reveunes:
         print Reveune
 
-        condition = ["mid(InTimes,1,8)", "ComputeLantency", "IntervalNum","MuUpper", "MuLower", "lnLastPriceThreshold", "A"]
-        tables = ["revenue20180124"]
-        path = "/home/emily/桌面/stockResult/stats20180124/"
+        condition = [ "ComputeLantency", "IntervalNum","MuUpper", "MuLower", "lnLastPriceThreshold", "A"]
+        tables = ["revenue20180124_c_i"]
+        path = "/home/emily/桌面/stockResult/stats20180130/"
         if not os.path.exists:
             os.makedirs(path)
 
@@ -429,8 +434,8 @@ if __name__ == '__main__':
             df = S.stats_revenue(table, condition, Reveune)
             IM = ImExport(S.db)
 
-            IM.save_df_csv(df, path, "stats_" + table + "_day.csv")
-    '''
+            IM.save_df_csv(df, path, "stats_" + table + ".csv")
+
 
 
 

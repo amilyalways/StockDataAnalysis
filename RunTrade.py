@@ -49,7 +49,7 @@ class RunTrade:
 
         while not is_stable:
             for key in self.paras:
-                trade_tableName = "tradeinfos" + str(date) + "_" + key
+                trade_tableName = "tradeinfos" + s + "_" + key
 
                 startId, endId, trade_tableName = self.addNewParas_mysql(
                     db_remote, new_paras, trade_start_day, trade_end_day, paras_tableName, trade_tableName)
