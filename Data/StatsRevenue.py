@@ -359,14 +359,24 @@ class StatsRevenue:
             i += 1
         return df_rs
 
+    #对参数向量进行归一化处理
+    def normalization_paras(self, allParas_means_stds, paras):
+        for key in allParas_means_stds:
+            mean = allParas_means_stds[key][0]
+            std = allParas_means_stds[key][1]
+            paras[key] = (paras[key] - mean)/std
+
+        return paras
+
     #判断现在测试的参数是否收敛
     def is_stable_paras(self):
         pass
 
     #找到最适合的几组参数,进行下一次迭代
-    def pick_good_paras(self, trade_tableName, date, minDayTradeNum=15):
-        revenue_tableName = "revenue" + trade_tableName[:10]
-        self.save_revenue_mysql(imex_remote, trade_tableName, 100000, revenue_tableName, "", False, [])
+    def pick_good_paras(self, trade_tableName, date, minDayTradeNum):
+        revenue_tableName = "revenue" + trade_tableName[10:]
+        print revenue_tableName
+        #self.save_revenue_mysql(imex_remote, trade_tableName, 100000, revenue_tableName, "", False, [])
 
         condition = ["ComputeLantency", "IntervalNum", "MuUpper", "MuLower", "lnLastPriceThreshold",
                      "A"]
@@ -377,11 +387,12 @@ class StatsRevenue:
             os.makedirs(path)
         imex.save_df_csv(df, path, "stats_" + revenue_tableName + ".csv")
         '''
+        print "************"
 
-        df_good_candicate = df['avgDayTradeNum' >= minDayTradeNum]
-        df_good = df_good_candicate.sort_values(by='total_revenue', ascending=False, inplace=True)
-        print df_good
-
+        df_good_candicate = df[df['avgDayTradeNum'] >= minDayTradeNum]
+        df_good = df_good_candicate.sort_values(by='total_revenue', ascending=False)
+        print "df_good: -------------------------"
+        print df_good[:5]
 
 
 
@@ -430,16 +441,16 @@ if __name__ == '__main__':
 
         condition = [ "ComputeLantency", "IntervalNum","MuUpper", "MuLower", "lnLastPriceThreshold", "A"]
         tables = ["revenue20180124_c_i"]
-        #path = "/home/emily/桌面/stockResult/stats20180130/"
-        #if not os.path.exists:
-         #   os.makedirs(path)
+        path = "/home/emily/桌面/stockResult/stats20180130/"
+        if not os.path.exists:
+            os.makedirs(path)
 
         for table in tables:
             df = S.stats_revenue(table, condition, Reveune)
-            S.pick_good_paras("tradeinfos20180124_c_i","","")
-            #IM = ImExport(S.db)
+            S.pick_good_paras("tradeinfos20180124_c_i","", 15)
+            IM = ImExport(S.db)
 
-            #IM.save_df_csv(df, path, "stats_" + table + ".csv")
+            IM.save_df_csv(df, path, "stats_" + table + ".csv")
 
 
 

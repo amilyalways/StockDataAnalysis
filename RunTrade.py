@@ -4,6 +4,10 @@ import time
 from Data.ImExport import ImExport
 from Utility.DB import DB
 from Data.StatsRevenue import StatsRevenue
+import math
+import numpy as np
+
+
 class RunTrade:
     paras = collections.OrderedDict()
 
@@ -77,13 +81,25 @@ if __name__ == '__main__':
     allParas = {
         'ComputeLantency': [6,8],
         'IntervalNum': [10,200],
-        'MuUpper': [],
-        'MuLower': [],
-        'lnLastPriceThreshold': [],
-        'A': []
+        'MuUpper': [1,2,3],
+        'MuLower': [0.5,0.6],
+        'lnLastPriceThreshold': [0.003,0.002],
+        'A': [0.001,0.002]
     }
     names = ['ComputeLantency', 'IntervalNum', 'MuUpper', 'MuLower',
              'lnLastPriceThreshold', 'A']
+    allParas_means_stds = {}
+
+
+    for key in allParas:
+        means = np.mean(allParas[key])
+        std = np.std(allParas[key])
+        allParas_means_stds.setdefault(key, (means, std))
+    print allParas_means_stds
+    print allParas_means_stds['A'][0]
+    print allParas_means_stds['A'][1]
+
+'''
     run_trade = RunTrade(names, allParas)
 
     initialParas = {
@@ -112,7 +128,7 @@ if __name__ == '__main__':
     trade_start_day = "201308"
     trade_end_day = "201312"
     run_trade.addNewParas_mysql(db_remote, stable_paras, trade_start_day, trade_end_day, paras_tableName, stable_paras)
-
+'''
 
 
    
