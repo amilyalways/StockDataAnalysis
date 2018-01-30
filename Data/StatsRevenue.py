@@ -371,13 +371,17 @@ class StatsRevenue:
         condition = ["ComputeLantency", "IntervalNum", "MuUpper", "MuLower", "lnLastPriceThreshold",
                      "A"]
         df = self.stats_revenue(revenue_tableName, condition, 'Revenue')
+        '''
         path = "/home/emily/桌面/stockResult/stats" + str(date) + "/"
         if not os.path.exists:
             os.makedirs(path)
         imex.save_df_csv(df, path, "stats_" + revenue_tableName + ".csv")
+        '''
 
         df_good_candicate = df['avgDayTradeNum' >= minDayTradeNum]
-        df_good = df_good_candicate
+        df_good = df_good_candicate.sort_values(by='total_revenue', ascending=False, inplace=True)
+        print df_good
+
 
 
 
@@ -426,15 +430,16 @@ if __name__ == '__main__':
 
         condition = [ "ComputeLantency", "IntervalNum","MuUpper", "MuLower", "lnLastPriceThreshold", "A"]
         tables = ["revenue20180124_c_i"]
-        path = "/home/emily/桌面/stockResult/stats20180130/"
-        if not os.path.exists:
-            os.makedirs(path)
+        #path = "/home/emily/桌面/stockResult/stats20180130/"
+        #if not os.path.exists:
+         #   os.makedirs(path)
 
         for table in tables:
             df = S.stats_revenue(table, condition, Reveune)
-            IM = ImExport(S.db)
+            S.pick_good_paras("tradeinfos20180124_c_i","","")
+            #IM = ImExport(S.db)
 
-            IM.save_df_csv(df, path, "stats_" + table + ".csv")
+            #IM.save_df_csv(df, path, "stats_" + table + ".csv")
 
 
 
