@@ -132,8 +132,11 @@ class RunTrade:
 
             df_paras.set_value(index=row, col='stable_score', value=stable_score)
 
-        df_paras['stable_score'] = df_paras['stable_score'] / df_paras['stable_score'].max()
-        df_paras['stable_score'] = 1 - df_paras['stable_score']
+        df_paras['std'] = df_paras['stable_score']
+        df_paras['stable_score'] = (df_paras['stable_score'].mean() - df_paras['stable_score']) / df_paras[
+            'stable_score'].std()
+
+        #df_paras['stable_score'] = 1 - df_paras['stable_score']
 
         df_paras['score'] = map(lambda x, y: self.calculate_score(x, y), df_paras['benfit_score'], df_paras['stable_score'])
 
@@ -251,15 +254,15 @@ if __name__ == '__main__':
     }
 
     thresholds = {
-        'minDayTradeNum': 15,
+        'minDayTradeNum': 1,
         'min_dist_convergence': 0.5,
         'top_paras_num': 5,
         'neighbor_paras_num': 2
     }
 
     weights = {
-        'stable_weight': 0,
-        'benfit_weight': 1
+        'stable_weight': 0.3,
+        'benfit_weight': 0.7
     }
 
     dbs = {
