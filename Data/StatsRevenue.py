@@ -13,6 +13,7 @@ class StatsRevenue:
 
     def __init__(self):
         self.db = DB('localhost', 'stockresult', 'root', '0910@mysql')
+        self.remote_db = DB("10.141.221.124", "stockresult", "root", "cslab123")
 
     def save_revenue_mysql(self, imex, fromtable, chunksize, totable, filedlist, isML, MLtags):
 
@@ -359,40 +360,7 @@ class StatsRevenue:
             i += 1
         return df_rs
 
-    #对参数向量进行归一化处理
-    def normalization_paras(self, allParas_means_stds, paras):
-        for key in allParas_means_stds:
-            mean = allParas_means_stds[key][0]
-            std = allParas_means_stds[key][1]
-            paras[key] = (paras[key] - mean)/std
 
-        return paras
-
-    #判断现在测试的参数是否收敛
-    def is_stable_paras(self):
-        pass
-
-    #找到最适合的几组参数,进行下一次迭代
-    def pick_good_paras(self, trade_tableName, date, minDayTradeNum):
-        revenue_tableName = "revenue" + trade_tableName[10:]
-        print revenue_tableName
-        #self.save_revenue_mysql(imex_remote, trade_tableName, 100000, revenue_tableName, "", False, [])
-
-        condition = ["ComputeLantency", "IntervalNum", "MuUpper", "MuLower", "lnLastPriceThreshold",
-                     "A"]
-        df = self.stats_revenue(revenue_tableName, condition, 'Revenue')
-        '''
-        path = "/home/emily/桌面/stockResult/stats" + str(date) + "/"
-        if not os.path.exists:
-            os.makedirs(path)
-        imex.save_df_csv(df, path, "stats_" + revenue_tableName + ".csv")
-        '''
-        print "************"
-
-        df_good_candicate = df[df['avgDayTradeNum'] >= minDayTradeNum]
-        df_good = df_good_candicate.sort_values(by='total_revenue', ascending=False)
-        print "df_good: -------------------------"
-        print df_good[:5]
 
 
 

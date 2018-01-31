@@ -8,13 +8,76 @@ import math
 import numpy as np
 
 
+
 class RunTrade:
-    paras = collections.OrderedDict()
+    allParas = collections.OrderedDict()
+    paras_names = []
+    allParas_means_stds = collections.OrderedDict()
+    paras_tableName = ""
+    start_id = 0
+    minDayTradeNum = 15
+    min_dist_convergence = 0.5
+    top_paras_num = 5
+    neighbor_paras_num = 2
 
 
-    def __init__(self, names, allParas):
-        for key in names:
-            self.paras[key] = allParas[key]
+
+
+    def __init__(self, fixed_paras, thresholds, dbs,):
+        self.allParas = fixed_paras['allParas']
+        self.paras_names = self.allParas.keys()
+        for key in self.allParas:
+            means = np.mean(allParas[key])
+            std = np.std(allParas[key])
+            self.allParas_means_stds.setdefault(key, (means, std))
+        self.paras_tableName = paras_tableName
+        self.start_id = fixed_paras['start_id']
+
+        self.minDayTradeNum = thresholds['minDayTradeNum']
+        self.min_dist_convergence = thresholds['min_dist_convergence']
+        self.top_paras_num = thresholds['top_paras_num']
+        self.neighbor_paras_num = thresholds['neighbor_paras_num']
+
+        self.db = dbs['db']
+        self.db_remote = dbs['db_remote']
+
+    #对参数向量进行归一化处理
+    def normalization_paras(self, allParas_means_stds, paras):
+        for key in allParas_means_stds:
+            mean = allParas_means_stds[key][0]
+            std = allParas_means_stds[key][1]
+            paras[key] = (paras[key] - mean)/std
+
+        return paras
+
+    #判断现在测试的参数是否收敛
+    def is_stable_paras(self):
+        pass
+
+    #找到最适合的几组参数,进行下一次迭代
+    def pick_good_paras(self, trade_tableName, date, minDayTradeNum):
+        revenue_tableName = "revenue" + trade_tableName[10:]
+        print revenue_tableName
+        #self.save_revenue_mysql(imex_remote, trade_tableName, 100000, revenue_tableName, "", False, [])
+
+        condition = ["ComputeLantency", "IntervalNum", "MuUpper", "MuLower", "lnLastPriceThreshold",
+                     "A"]
+        df = self.stats_revenue(revenue_tableName, condition, 'Revenue')
+        '''
+        path = "/home/emily/桌面/stockResult/stats" + str(date) + "/"
+        if not os.path.exists:
+            os.makedirs(path)
+        imex.save_df_csv(df, path, "stats_" + revenue_tableName + ".csv")
+        '''
+        print "************"
+
+        df_good_candicate = df[df['avgDayTradeNum'] >= minDayTradeNum]
+        df_good = df_good_candicate.sort_values(by='total_revenue', ascending=False)
+        print "df_good: -------------------------"
+        print df_good[:5]
+
+
+
 
     def addNewParas_mysql(self, db, newParas, trade_start_day, trade_end_day, parastableName, destTableName):
         sql_num = "select count(*) from " + parastableName
@@ -78,29 +141,43 @@ class RunTrade:
 
 
 if __name__ == '__main__':
-    allParas = {
-        'ComputeLantency': [6,8],
-        'IntervalNum': [10,200],
-        'MuUpper': [1,2,3],
-        'MuLower': [0.5,0.6],
-        'lnLastPriceThreshold': [0.003,0.002],
-        'A': [0.001,0.002]
+
+    allParas = collections.OrderedDict()
+    allParas['ComputeLantency'] = [6, 8]
+    allParas['IntervalNum'] = [10, 200]
+    allParas['MuUpper'] = [1, 2, 3]
+    allParas['MuLower'] = [0.5, 0.6]
+    allParas['lnLastPriceThreshold'] = [0.003, 0.002]
+    allParas['A'] = [0.001, 0.002]
+
+    paras_tableName = "paras_need_run"
+    fixed_paras = {
+        'allParas': allParas,
+        'paras_tableName': paras_tableName,
+        'start_id': 5
     }
-    names = ['ComputeLantency', 'IntervalNum', 'MuUpper', 'MuLower',
-             'lnLastPriceThreshold', 'A']
-    allParas_means_stds = {}
 
+    thresholds = {
+        'minDayTradeNum': 15,
+        'min_dist_convergence': 0.5,
+        'top_paras_num': 5,
+        'neighbor_paras_num': 2
+    }
 
-    for key in allParas:
-        means = np.mean(allParas[key])
-        std = np.std(allParas[key])
-        allParas_means_stds.setdefault(key, (means, std))
-    print allParas_means_stds
-    print allParas_means_stds['A'][0]
-    print allParas_means_stds['A'][1]
+    dbs = {
+        'db': DB('localhost', 'stockresult', 'root', '0910@mysql'),
+        'db_remote': DB("10.141.221.124", "stockresult", "root", "cslab123")
+    }
+
+    run_trade = RunTrade(fixed_paras, thresholds, dbs)
+
+    print run_trade.allParas
+    print run_trade.paras_names
+    print run_trade.allParas_means_stds
+    print run_trade.paras_tableName
+    print run_trade.start_id
 
 '''
-    run_trade = RunTrade(names, allParas)
 
     initialParas = {
         'ComputeLantency': [6,8],
@@ -112,11 +189,11 @@ if __name__ == '__main__':
     }
     paras = initialParas
 
-    db_remote = DB("10.141.221.124", "stockresult", "root", "cslab123")
+
 
     stats = StatsRevenue()
 
-    paras_tableName = "paras_need_run"
+
 
     new_paras = [[6, 840, 0.01, 0.02, 0.003, 0.1], [20, 240, 0.01, 0.02, 0.003, 0.1]]
     trade_start_day = "201303"
@@ -127,6 +204,14 @@ if __name__ == '__main__':
     stable_trade_tables = "tradeinfos" + date + "_stable"
     trade_start_day = "201308"
     trade_end_day = "201312"
+    allParas = {
+        'ComputeLantency': [6, 8],
+        'IntervalNum': [10, 200],
+        'MuUpper': [1, 2, 3],
+        'MuLower': [0.5, 0.6],
+        'lnLastPriceThreshold': [0.003, 0.002],
+        'A': [0.001, 0.002]
+    }
     run_trade.addNewParas_mysql(db_remote, stable_paras, trade_start_day, trade_end_day, paras_tableName, stable_paras)
 '''
 
