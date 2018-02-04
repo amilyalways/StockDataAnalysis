@@ -461,7 +461,7 @@ if __name__ == '__main__':
 
     Reveunes = ['Revenue']
     for Reveune in Reveunes:
-        print Reveune
+        #print Reveune
 
         condition = [ "ComputeLantency", "IntervalNum","MuUpper", "MuLower", "lnLastPriceThreshold", "A"]
         tables = ["revenue20180124_c_i"]
