@@ -88,7 +88,7 @@ class StatsRevenue:
             if start > trade_num:
                 break
             print "---------------------------"
-
+    '''
     def stats_revenue(self, from_table, condition, Revenue):
 
         paras = ""
@@ -133,6 +133,62 @@ class StatsRevenue:
         df.fillna(0, inplace=True)
 
         return df
+    '''
+    def stats_revenue(self, from_table, condition, Revenue):
+
+        paras = ""
+        for con in condition:
+            paras += con + ", "
+        paras = paras[:-2]
+
+        sql0 = "select " + paras + ", count(*),  sum(" + Revenue + "), avg(" + Revenue + ") from " + from_table
+        sql1 = "select " + paras + ", InLastPrice, count(*), count(distinct mid(InTimes,1,8)), sum(" + Revenue \
+               + "), avg(" + Revenue + "), max(" + Revenue + "), min(" + Revenue + "), std(" + Revenue \
+               + ")  from " + from_table + " group by " + paras
+        df1 = pd.read_sql(sql1, self.db.conn)
+        df1.rename(columns={'count(*)': 'tradeNum', 'count(distinct mid(InTimes,1,8))': 'tradeDayNum',
+                            'sum(' + Revenue + ')': 'total_revenue',
+                            'std(' + Revenue + ')': 'std_revenue',
+                            'avg(' + Revenue + ')': 'avg_reveune', 'max(' + Revenue + ')': 'max_reveune',
+                            'min(' + Revenue + ')': 'min_reveune'}, inplace=True)
+        df1['avgDayTradeNum'] = map(lambda x, y: x / y if y > 0 else 0, df1['tradeNum'], df1['tradeDayNum'])
+        print sql1
+        print df1
+
+        sql2 = sql0 + " where " + Revenue + ">0 " + " group by " + paras
+        print sql2
+        df2 = pd.read_sql(sql2, self.db.conn)
+        df2.rename(columns={'count(*)': 'winNum', 'sum(' + Revenue + ')': 'total_revenue(win)',
+                            'avg(' + Revenue + ')': 'avg_revenue(win)'}, inplace=True)
+
+        sql3 = sql0 + " where " + Revenue + "<0 " + " group by " + paras
+        print sql3
+        df3 = pd.read_sql(sql3, self.db.conn)
+        df3.rename(columns={'count(*)': 'loseNum', 'sum(' + Revenue + ')': 'total_revenue(lose)',
+                            'avg(' + Revenue + ')': 'avg_revenue(lose)'}, inplace=True)
+
+        df = pd.merge(df1, df2, how='left', on=condition)
+        df = pd.merge(df, df3, how='left', on=condition)
+        df['winPercent'] = df['winNum'] / df['tradeNum']
+        df['sharp_rate'] = (df['total_revenue'] / df['InLastPrice'] - (0.3 / 250) * df['tradeDayNum']) / df[
+            'std_revenue']
+
+        df.fillna(0, inplace=True)
+
+        return df
+
+    def stats_volatility(self, df_need, df_dest, condition, stats_range):
+
+        if stats_range == "month":
+            df_need['mid(InTimes,1,6)'] = map(lambda x: x[:-2], df_need['mid(InTimes,1,8)'])
+
+        df_need = df_need.groupby(by=condition).agg({'std_revenue': 'mean'})
+        df_need.rename(columns={'std_revenue': 'volatility'}, inplace=True)
+
+        df_need = df_need.reset_index()
+
+        df_dest = pd.merge(df_dest, df_need, how='left', on=condition)
+        return df_dest
 
     #统计在亏损的交易中，最大的可能盈利值
     def stats_maxWin(self, trade_table, to_table):
